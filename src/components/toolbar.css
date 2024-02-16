@@ -1,0 +1,114 @@
+.topbar-container{
+    position: absolute;
+    display: flex;
+    top: 2%;
+    width: 100vw;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 999;
+}
+svg{
+    stroke-width: 1.5;
+    width: 24;
+    height: 24;
+    z-index: 9999
+}
+
+svg:hover{
+    cursor: pointer;
+}
+.topbar-container .toolbar{
+    display: flex;
+    gap:12px;
+    box-shadow: 0 0  3px 2px #eaeaea ;
+    padding: 6px;
+    border-radius: 4px;
+}
+.topbar-container .toolbar div{
+    width: 24px;
+    height: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 4px;
+    z-index: 9999;
+}
+
+.topbar-container .toolbar div:hover{
+    background-color: #e0dfff;
+    cursor: pointer;
+    z-index: 9999;
+}
+
+.pallete{
+    margin-left: 2%;
+    padding: 6px;
+    border-radius: 4px;
+    box-shadow: 0 0  3px 2px #eaeaea ;
+}
+.pallete div{
+    width: 24px;
+    height: 24px;
+    display: flex;
+    
+    justify-content: center;
+    align-items: center;
+    border-radius: 4px;
+    z-index: 9999;
+}
+.share{
+    margin-right: 2%;
+    padding: 6px 8px;
+    border-radius: 4px;
+    box-shadow: 0 0  3px 2px #eaeaea ;
+}
+
+.bottom-container{
+    position: absolute;
+    bottom: 2%;
+    z-index: 999;
+    border-radius: 4px;
+    left: 2%;
+    box-shadow: 0 0  3px 2px #eaeaea ;
+}
+
+.bottom-container .bottom{
+    cursor: pointer;
+    display: flex;
+    gap: 20px;
+    padding:6px 8px;
+}
+
+.bottom-container .bottom div{
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bottom-container .bottom .pallete-mobile{
+    display: none;
+}
+@media screen and (max-width:600px) {
+    .pallete{
+        display: none;
+    }
+    .share{
+        display:none;
+    }
+    .topbar-container{
+        justify-content: center;
+    }
+    .bottom-container{
+        width: 100%;
+    }
+
+    .bottom-container .bottom {
+       
+        justify-content: space-around;
+    }
+    .bottom-container .bottom .pallete-mobile{
+        display: block;
+    }
+}
