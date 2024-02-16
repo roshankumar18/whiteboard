@@ -5,7 +5,7 @@ import useTool from '../utils/tools'
 import { Minus, Palette, Pencil, Redo, Square, Type, Undo } from 'lucide-react'
 import usePallete from '../utils/usePalette'
 import Pallete from './Pallete'
-const Toolbar = ({undo}) => {
+const Toolbar = ({undo ,redo}) => {
 
     const {toggle}= useTool()
     const {open,setOpen} = usePallete()
@@ -50,7 +50,7 @@ const Toolbar = ({undo}) => {
            <div className='icon undo' onClick={(e)=>undo(e)}>
              <Undo/>
            </div>
-          <div className='icon redo'>
+          <div className='icon redo' onClick={(e)=>redo(e)}>
            <Redo/>
           </div>
         </div>

@@ -13,9 +13,9 @@ function App() {
   const [mouseDown ,setMouseDown] = useState(false)
   const [canvasCtx ,setCanvasCtx] = useState(null)
   const [undoState, setUndoState] = useState([])
+  const [redoState, setRedoState] = useState([])
   const [tempCanvasCtx ,setTempCanvasCtx] = useState(null)
   const [isInput ,setIsInput] = useState(false)
-  const [color, setColor] = useState("#000000")
   const [size, setSize] = useState(2)
   const {tools,reset} = useTool()
   const {pencil,square,line,text} = tools
@@ -130,7 +130,7 @@ function App() {
     canvasCtx.drawImage(tempRef.current,0,0)
     const _tempDrawingState = [...undoState,canvasRef.current.toDataURL()]
     setUndoState(_tempDrawingState)
-    console.log(_tempDrawingState)
+    // console.log(_tempDrawingState)
   }
 
   useEffect(()=>{
@@ -163,17 +163,29 @@ function App() {
     reset()
   }
 
-  const undo = (e) =>{
+
+  const undo = (e) => {
     e.stopPropagation()
-    if(undoState.length>0){
-      setUndoState((prevDrawingState) => {
-        const state = prevDrawingState.slice(0, -1);
-        redrawCanvas(state);
-        return state;
-      });
-  
+    if (undoState.length > 0) {
+      setRedoState([...redoState, undoState[undoState.length - 1]])
+      const state = undoState.slice(0, -1);
+      setUndoState(state)
+      redrawCanvas(state)
     }
   }
+  
+  // const undo = (e) =>{
+  //   e.stopPropagation()
+  //   if(undoState.length>0){
+  //     setUndoState((prevDrawingState) => {
+  //       setRedoState(prevRedoState=>[...prevRedoState, prevDrawingState[prevDrawingState.length-1]])
+  //       const state = prevDrawingState.slice(0, -1);
+  //       redrawCanvas(state);
+  //       return state;
+  //     });
+  
+  //   }
+  // }
 
   const redrawCanvas =(state) =>{
     tempCanvasCtx.clearRect(0,0,tempRef.current.width,tempRef.current.height)
@@ -183,12 +195,27 @@ function App() {
     img.onload = () =>{
       canvasCtx.drawImage(img,0,0)
     }
-  
   }
+
+
+const redo = (e) => {
+  e.stopPropagation();
+  if (redoState.length > 0) {
+    const nextState = [...undoState, redoState[redoState.length - 1]];
+    const nextRedoState = redoState.slice(0, -1);
+    
+    setUndoState(nextState);
+    setRedoState(nextRedoState);
+
+    redrawCanvas(nextState);
+  }
+}
 
   return (
     <div className="App">
-      <Toolbar undo={undo}/>
+      <Toolbar 
+      undo={undo}
+      redo={redo}/>
       {isInput && 
       <input ref={inputRef} 
       style={{position:'absolute' ,left:`${coordinates.x}px` ,top:`${coordinates.y}px` ,border:'1px solid black',zIndex:99}}
