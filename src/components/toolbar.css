@@ -46,14 +46,10 @@ svg:hover{
     border-radius: 4px;
     box-shadow: 0 0  3px 2px #eaeaea ;
 }
-.pallete div{
-    width: 24px;
-    height: 24px;
+.pallete icon{
     display: flex;
-    
     justify-content: center;
     align-items: center;
-    border-radius: 4px;
     z-index: 9999;
 }
 .share{
@@ -79,7 +75,7 @@ svg:hover{
     padding:6px 8px;
 }
 
-.bottom-container .bottom div{
+.bottom-container .bottom icon{
     width: 24px;
     height: 24px;
     display: flex;
@@ -87,9 +83,17 @@ svg:hover{
     justify-content: center;
 }
 
+.bottom-container .bottom icon:hover{
+    background-color: aqua;
+    cursor: pointer;
+}
 .bottom-container .bottom .pallete-mobile{
     display: none;
 }
+.pallete-clicked{
+    background-color: #ececf4;
+}
+
 @media screen and (max-width:600px) {
     .pallete{
         display: none;

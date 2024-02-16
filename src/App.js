@@ -2,6 +2,7 @@ import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import './App.css';
 import Toolbar from './components/Toolbar';
 import useTool from './utils/tools';
+import usePallete from './utils/usePalette';
 
 function App() {
   const canvasRef = useRef()
@@ -11,12 +12,14 @@ function App() {
   const [coordinates,setCoordinates] = useState({x:0,y:0})
   const [mouseDown ,setMouseDown] = useState(false)
   const [canvasCtx ,setCanvasCtx] = useState(null)
+  const [undoState, setUndoState] = useState([])
   const [tempCanvasCtx ,setTempCanvasCtx] = useState(null)
   const [isInput ,setIsInput] = useState(false)
   const [color, setColor] = useState("#000000")
   const [size, setSize] = useState(2)
   const {tools,reset} = useTool()
   const {pencil,square,line,text} = tools
+  const {pallete} = usePallete()
 
   useEffect(()=>{
     if(canvasRef){
@@ -54,18 +57,19 @@ function App() {
     if(!mouseDown)
       return
     const ctx = canvasCtx
-    ctx.beginPath()
-    ctx.moveTo(coordinates.x,coordinates.y)
+    // ctx.beginPath()
+    // ctx.moveTo(coordinates.x,coordinates.y)
+    tempCanvasCtx.beginPath()
+    tempCanvasCtx.moveTo(coordinates.x,coordinates.y)
     ctx.lineWidth = size
     tempCanvasCtx.lineWidth = size
-    ctx.strokeStyle = 'green'
-    tempCanvasCtx.strokeStyle ='green'
-    ctx.lineCap = "round"
+    tempCanvasCtx.lineCap = "round"
+    tempCanvasCtx.lineJoin ='round'
     
     const mouseMove = (e) =>{
       if(pencil){
-        ctx.lineTo(e.clientX,e.clientY)
-        ctx.stroke()
+        tempCanvasCtx.lineTo(e.clientX,e.clientY)
+        tempCanvasCtx.stroke()
       }
 
       if(line){
@@ -83,11 +87,27 @@ function App() {
           e.clientX-coordinates.x,
           e.clientY-coordinates.y)
       }
+      
 
     }
-    document.addEventListener('mousemove',mouseMove)
-    return () => document.removeEventListener('mousemove',mouseMove)
-  },[mouseDown])
+    tempRef.current.addEventListener('mousemove',mouseMove)
+    // tempRef.current.addEventListener('touchmove',mouseMove)
+    return () => {
+      tempRef.current.removeEventListener('mousemove',mouseMove)
+      // tempRef.current.removeEventListener('touchmove',mouseMove)
+
+    }
+  },[mouseDown,tempRef])
+
+
+
+  useEffect(()=>{
+    if(canvasCtx===null || tempCanvasCtx===null)
+      return
+    canvasCtx.strokeStyle = pallete.color.hex
+    tempCanvasCtx.strokeStyle =pallete.color.hex
+    console.log(pallete.color)
+  },[canvasCtx,tempCanvasCtx,pallete.color])
 
   const handleMouseDown = useCallback((e) =>{
     console.log(e.clientX,e.clientY)
@@ -97,6 +117,7 @@ function App() {
       y:e.clientY
     })
     if(text){
+      console.log('inputshould')
       setIsInput(true)
     }else{
       setIsInput(false)
@@ -107,19 +128,22 @@ function App() {
     setMouseDown(false)
     
     canvasCtx.drawImage(tempRef.current,0,0)
- 
+    const _tempDrawingState = [...undoState,canvasRef.current.toDataURL()]
+    setUndoState(_tempDrawingState)
+    console.log(_tempDrawingState)
   }
 
   useEffect(()=>{
-    document.addEventListener('mousedown',handleMouseDown)
-    document.addEventListener('mouseup',handleMouseUp)
+    tempRef.current.addEventListener('mousedown',handleMouseDown)
+    tempRef.current.addEventListener('mouseup',handleMouseUp)
     return () => {
-      document.removeEventListener('mousedown',handleMouseDown)
-      document.removeEventListener('mouseup',handleMouseUp)
+      tempRef.current.removeEventListener('mousedown',handleMouseDown)
+      tempRef.current.removeEventListener('mouseup',handleMouseUp)
     }
-  },[canvasCtx,text])
+  },[canvasCtx,text,undoState,tempRef])
 
   useEffect(()=>{
+    console.log(inputRef)
     if(inputRef.current)
     {
       inputRef.current.focus()
@@ -128,7 +152,7 @@ function App() {
       textStartCoordinates.current.y = inputRef.current.offsetTop 
     }
      
-  },[inputRef.current])
+  },[inputRef,text])
  
   const inputBlur = () =>{
     setIsInput(false)
@@ -139,14 +163,39 @@ function App() {
     reset()
   }
 
+  const undo = (e) =>{
+    e.stopPropagation()
+    if(undoState.length>0){
+      setUndoState((prevDrawingState) => {
+        const state = prevDrawingState.slice(0, -1);
+        redrawCanvas(state);
+        return state;
+      });
+  
+    }
+  }
+
+  const redrawCanvas =(state) =>{
+    tempCanvasCtx.clearRect(0,0,tempRef.current.width,tempRef.current.height)
+    canvasCtx.clearRect(0,0,canvasRef.current.width,canvasRef.current.height)
+    const img = new Image()
+    img.src = state[state.length-1]
+    img.onload = () =>{
+      canvasCtx.drawImage(img,0,0)
+    }
+  
+  }
+
   return (
     <div className="App">
-      <Toolbar/>
-      <canvas className='temp-canvas' ref={tempRef} style={{position:'absolute'}}></canvas>
+      <Toolbar undo={undo}/>
       {isInput && 
       <input ref={inputRef} 
-      style={{position:'absolute' ,left:`${coordinates.x}px` ,top:`${coordinates.y}px`}}
-      onBlur={inputBlur}  />}
+      style={{position:'absolute' ,left:`${coordinates.x}px` ,top:`${coordinates.y}px` ,border:'1px solid black',zIndex:99}}
+      onBlur={inputBlur}
+       />}
+      <canvas className='temp-canvas' ref={tempRef} style={{position:'absolute'}}></canvas>
+
       <canvas ref={canvasRef} style={{display:'block'}}></canvas>
      
     </div>

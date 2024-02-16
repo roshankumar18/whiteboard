@@ -1,0 +1,27 @@
+.pallete-container{
+    position: absolute;
+    padding: 8px 10px;
+    display: flex ;
+    flex-direction: column;
+    gap: 4px;
+    top: 100%;
+    margin-top: 10px;
+    margin-left: 2%;
+    left: 0;
+    border-radius: 4px;
+    box-shadow: 0 0  3px 2px #eaeaea ;
+}
+.twitter-picker input{
+    transform: none ;
+}
+.twitter-picker{
+    box-shadow: none !important;
+}
+
+@media screen and (max-width:600px) {
+    .pallete-container{
+        top: -20px;
+        transform: translatey(-100%);
+        margin-left: 2%;
+    }
+}

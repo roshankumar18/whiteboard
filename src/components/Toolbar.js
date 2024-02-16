@@ -3,16 +3,20 @@ import  './toolbar.css'
 import useTool from '../utils/tools'
 
 import { Minus, Palette, Pencil, Redo, Square, Type, Undo } from 'lucide-react'
-const Toolbar = () => {
+import usePallete from '../utils/usePalette'
+import Pallete from './Pallete'
+const Toolbar = ({undo}) => {
 
     const {toggle}= useTool()
+    const {open,setOpen} = usePallete()
   return (
     <>
     <div className='topbar-container'>
-        <div className='pallete mobile'>
-           <div >
+        <div className={`pallete mobile ${open?'pallete-clicked':''}`}>
+           <div  className='icon' onClick={()=>setOpen(prev=>!prev)}>
              <Palette/>
            </div>
+           <Pallete/>
         </div>
         <div className='toolbar'>
         <div onClick={(e)=>{
@@ -26,7 +30,9 @@ const Toolbar = () => {
         <div onClick={()=>toggle('line')}>
             <Minus size={16}/>
         </div>
-        <div onClick={()=>toggle('text')}>
+        <div onClick={(e)=>{
+            e.stopPropagation()
+            toggle('text')}}>
             <Type size={16}/>
         </div>
         </div>
@@ -36,13 +42,15 @@ const Toolbar = () => {
     </div>
     <div className='bottom-container'>
         <div className='bottom'>
+                <Pallete/>
            <div className='pallete-mobile'>
              <Palette/>
            </div>
-           <div className='undo'>
+           
+           <div className='icon undo' onClick={(e)=>undo(e)}>
              <Undo/>
            </div>
-          <div className='redo'>
+          <div className='icon redo'>
            <Redo/>
           </div>
         </div>

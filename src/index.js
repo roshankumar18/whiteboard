@@ -4,13 +4,17 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { ToolPovider } from './utils/tools';
+import { PalleteProvider } from './utils/usePalette';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
+  <PalleteProvider>
     <ToolPovider>
       <App />
     </ToolPovider>
     
+  </PalleteProvider>
+
 );
 
 // If you want to start measuring performance in your app, pass a function
