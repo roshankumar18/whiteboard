@@ -5,19 +5,22 @@
     width: 100vw;
     justify-content: space-between;
     align-items: center;
-    z-index: 999;
+    /* z-index: 999; */
+    z-index: 3;
 }
 svg{
     stroke-width: 1.5;
     width: 24;
     height: 24;
-    z-index: 9999
+    /* z-index: 3; */
+    /* z-index: 9999 */
 }
 
 svg:hover{
     cursor: pointer;
 }
 .topbar-container .toolbar{
+    position: relative;
     display: flex;
     gap:12px;
     box-shadow: 0 0  3px 2px #eaeaea ;
@@ -31,26 +34,32 @@ svg:hover{
     justify-content: center;
     align-items: center;
     border-radius: 4px;
-    z-index: 9999;
+    /* z-index: 3; */
+    /* z-index: 9999; */
 }
 
 .topbar-container .toolbar div:hover{
     background-color: #e0dfff;
     cursor: pointer;
-    z-index: 9999;
+    /* z-index: 9999; */
 }
 
+.topbar-container .toolbar .selected{
+    background-color: #e0dfff;
+}
 .pallete{
     margin-left: 2%;
     padding: 6px;
     border-radius: 4px;
     box-shadow: 0 0  3px 2px #eaeaea ;
+    /* cursor: pointer; */
 }
 .pallete icon{
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 9999;
+    /* z-index: 3; */
+    /* z-index: 9999; */
 }
 .share{
     margin-right: 2%;
@@ -62,13 +71,14 @@ svg:hover{
 .bottom-container{
     position: absolute;
     bottom: 2%;
-    z-index: 999;
+    z-index: 3;
     border-radius: 4px;
     left: 2%;
     box-shadow: 0 0  3px 2px #eaeaea ;
 }
 
 .bottom-container .bottom{
+    position: relative;
     cursor: pointer;
     display: flex;
     gap: 20px;

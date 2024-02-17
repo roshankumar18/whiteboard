@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import usePallete from '../utils/usePalette'
 import './pallete.css'
 import { TwitterPicker } from 'react-color'
+import { Minus } from 'lucide-react'
 const Pallete = () => {
     const {open ,pallete, changePallete} = usePallete()
     const [color,setColor] = useState(pallete.color)
@@ -18,14 +19,26 @@ const Pallete = () => {
             <div>
                 Stroke
             </div>
-          
              <TwitterPicker 
              color={color}
              onChange={onChange}
              width='170px'
              colors={['#000000','#FF6900', '#FCB900', '#7BDCB5',]}
              triangle='hide'/>
-            
+            <div>
+              Stroke width
+            </div>
+            <div className='stroke-width-container'>
+            {Array(4).fill('').map((_,index)=>{
+                  return <div className='stroke-width'>
+                            <Minus 
+                            key={index} 
+                            style={{strokeWidth:index+1}}
+                            onClick={()=>changePallete('strokeWidth',(index+1)*2)}/>
+                        </div>
+                })}
+
+            </div>
             
         </div>}
     </>

@@ -2,12 +2,35 @@ import React, { memo } from 'react'
 import  './toolbar.css'
 import useTool from '../utils/tools'
 
-import { Minus, Palette, Pencil, Redo, Square, Type, Undo } from 'lucide-react'
+import { Minus, MousePointer, Palette, Pencil, Redo, Square, Type, Undo } from 'lucide-react'
 import usePallete from '../utils/usePalette'
 import Pallete from './Pallete'
+
+const toolItems = [
+  {
+    type:'select',
+    icon : () => <MousePointer size={16} />
+  },
+  {
+    type:'pencil',
+    icon : () => <Pencil size={16} />
+  },
+  {
+    type:'square',
+    icon : () => <Square size={16} />
+  },
+  {
+    type:'line',
+    icon : () => <Minus size={16} />
+  },
+  {
+    type:'text',
+    icon : () => <Type size={16} />
+  }]
+
 const Toolbar = ({undo ,redo}) => {
 
-    const {toggle}= useTool()
+    const {tools,toggle}= useTool()
     const {open,setOpen} = usePallete()
   return (
     <>
@@ -19,22 +42,14 @@ const Toolbar = ({undo ,redo}) => {
            <Pallete/>
         </div>
         <div className='toolbar'>
-        <div onClick={(e)=>{
-            e.stopPropagation()
-            toggle('pencil')}}>
-            <Pencil size={16}/>
-        </div>
-        <div onClick={()=>toggle('square')}>
-            <Square size={16}/>
-        </div>
-        <div onClick={()=>toggle('line')}>
-            <Minus size={16}/>
-        </div>
-        <div onClick={(e)=>{
-            e.stopPropagation()
-            toggle('text')}}>
-            <Type size={16}/>
-        </div>
+          {toolItems.map(({type,icon:Icon},index)=>{
+            return (
+              
+            <div key={type} onClick={()=>toggle(type)} className={tools[type]===true?'selected':''}>
+              {<Icon size={16}/>}
+            </div>)
+          })}
+
         </div>
         <div className='share mobile'>
            <div>Share</div>
@@ -42,9 +57,10 @@ const Toolbar = ({undo ,redo}) => {
     </div>
     <div className='bottom-container'>
         <div className='bottom'>
-                <Pallete/>
+                
            <div className='pallete-mobile'>
-             <Palette/>
+           <Pallete />
+             <Palette onClick={(()=>setOpen(prev=>!prev))}/>
            </div>
            
            <div className='icon undo' onClick={(e)=>undo(e)}>

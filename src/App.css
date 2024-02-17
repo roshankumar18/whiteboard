@@ -2,15 +2,23 @@
   position: relative;
   z-index: 1;
 }
-.App input{
+.App .input-container{
+  position: absolute;
   z-index: 99;
-  transform: translatey(-50%);
-  border: none;
 }
-.App input:focus{
+.App input{
+ 
+  /* transform: translatey(-50%); */
+  /* border: none; */
+}
+/* .App input:focus{
   border: none;
   outline: none;
-}
+} */
 canvas.temp-canvas{
-  z-index: 3;
+  z-index: 2;
+}
+canvas{
+  height: 100%;
+  width: 100%;
 }

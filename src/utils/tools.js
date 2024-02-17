@@ -5,9 +5,10 @@ const Tool = createContext()
 export const ToolPovider = ({children}) =>{
     const [tools ,setTool] = useState({
         line:false,
-        pencil:true,
+        pencil:false,
         square:false,
-        text:false
+        text:false,
+        select:true
     })
 
     const toggle = (type) => {
@@ -17,6 +18,7 @@ export const ToolPovider = ({children}) =>{
           pencil: type === 'pencil',
           square: type === 'square',
           text: type === 'text',
+          select: type === 'select'
         }))
       }
 

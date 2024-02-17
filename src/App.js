@@ -16,34 +16,37 @@ function App() {
   const [redoState, setRedoState] = useState([])
   const [tempCanvasCtx ,setTempCanvasCtx] = useState(null)
   const [isInput ,setIsInput] = useState(false)
-  const [size, setSize] = useState(2)
   const {tools,reset} = useTool()
   const {pencil,square,line,text} = tools
   const {pallete} = usePallete()
 
   useEffect(()=>{
+   
     if(canvasRef){
       const canvas = canvasRef.current
       const tempCanvas = tempRef.current
       const ctx=  canvas.getContext("2d")
       const tempCtx=  tempCanvas.getContext("2d")
+      ctx.imageSmoothingEnabled = true
       setCanvasCtx(ctx)
       setTempCanvasCtx(tempCtx)
       canvas.width = window.innerWidth
       canvas.height = window.innerHeight
       tempCanvas.width = window.innerWidth
       tempCanvas.height = window.innerHeight
+ 
     }
   },[])
   
   useEffect(()=>{
+    const scaleFactor = window.devicePixelRatio;
     const canvas = canvasRef.current
     const tempCanvas = tempRef.current
     const handleResize = () =>{
-      canvas.width = window.innerWidth
-      canvas.height = window.innerHeight
-      tempCanvas.width = window.innerWidth
-      tempCanvas.height = window.innerHeight
+      canvas.width = window.innerWidth * scaleFactor
+      canvas.height = window.innerHeight * scaleFactor
+      tempCanvas.width = window.innerWidth * scaleFactor
+      tempCanvas.height = window.innerHeight * scaleFactor
     } 
 
     window.addEventListener('resize',handleResize)
@@ -56,18 +59,14 @@ function App() {
   useEffect(()=>{
     if(!mouseDown)
       return
-    const ctx = canvasCtx
-    // ctx.beginPath()
-    // ctx.moveTo(coordinates.x,coordinates.y)
     tempCanvasCtx.beginPath()
     tempCanvasCtx.moveTo(coordinates.x,coordinates.y)
-    ctx.lineWidth = size
-    tempCanvasCtx.lineWidth = size
-    tempCanvasCtx.lineCap = "round"
-    tempCanvasCtx.lineJoin ='round'
+    tempCanvasCtx.lineWidth = pallete.strokeWidth
+    tempCanvasCtx.lineCap = 'round'
     
     const mouseMove = (e) =>{
       if(pencil){
+        tempCanvasCtx.clearRect(0, 0, tempRef.current.width, tempRef.current.height)
         tempCanvasCtx.lineTo(e.clientX,e.clientY)
         tempCanvasCtx.stroke()
       }
@@ -91,10 +90,8 @@ function App() {
 
     }
     tempRef.current.addEventListener('mousemove',mouseMove)
-    // tempRef.current.addEventListener('touchmove',mouseMove)
     return () => {
       tempRef.current.removeEventListener('mousemove',mouseMove)
-      // tempRef.current.removeEventListener('touchmove',mouseMove)
 
     }
   },[mouseDown,tempRef])
@@ -116,22 +113,27 @@ function App() {
       x:e.clientX,
       y:e.clientY
     })
+    if(pencil){
+      console.log(pencil,'called')
+      tempCanvasCtx.moveTo(e.clientX,e.clientY)
+      tempCanvasCtx.lineTo(e.clientX,e.clientY)
+      tempCanvasCtx.stroke()
+    }
     if(text){
-      console.log('inputshould')
       setIsInput(true)
     }else{
       setIsInput(false)
     }
-  },[text,mouseDown])
+  },[text,pencil,mouseDown])
 
-  const handleMouseUp = (e) =>{
+  const handleMouseUp = useCallback((e) =>{
     setMouseDown(false)
     
     canvasCtx.drawImage(tempRef.current,0,0)
+    tempCanvasCtx.clearRect(0, 0, tempRef.current.width, tempRef.current.height)
     const _tempDrawingState = [...undoState,canvasRef.current.toDataURL()]
     setUndoState(_tempDrawingState)
-    // console.log(_tempDrawingState)
-  }
+  },[canvasCtx,tempCanvasCtx])
 
   useEffect(()=>{
     tempRef.current.addEventListener('mousedown',handleMouseDown)
@@ -140,19 +142,17 @@ function App() {
       tempRef.current.removeEventListener('mousedown',handleMouseDown)
       tempRef.current.removeEventListener('mouseup',handleMouseUp)
     }
-  },[canvasCtx,text,undoState,tempRef])
+  },[canvasCtx,text,undoState,tempRef,handleMouseDown,handleMouseUp])
 
-  useEffect(()=>{
+  useEffect(() => {
     console.log(inputRef)
-    if(inputRef.current)
-    {
-      inputRef.current.focus()
-      console.log(inputRef)
-      textStartCoordinates.current.x = inputRef.current.offsetLeft
-      textStartCoordinates.current.y = inputRef.current.offsetTop 
+    if (inputRef.current && isInput) {
+      inputRef.current.focus();
+      textStartCoordinates.current.x = inputRef.current.offsetLeft;
+      textStartCoordinates.current.y = inputRef.current.offsetTop;
     }
-     
-  },[inputRef,text])
+  }, [inputRef, isInput]);
+
  
   const inputBlur = () =>{
     setIsInput(false)
@@ -174,19 +174,6 @@ function App() {
     }
   }
   
-  // const undo = (e) =>{
-  //   e.stopPropagation()
-  //   if(undoState.length>0){
-  //     setUndoState((prevDrawingState) => {
-  //       setRedoState(prevRedoState=>[...prevRedoState, prevDrawingState[prevDrawingState.length-1]])
-  //       const state = prevDrawingState.slice(0, -1);
-  //       redrawCanvas(state);
-  //       return state;
-  //     });
-  
-  //   }
-  // }
-
   const redrawCanvas =(state) =>{
     tempCanvasCtx.clearRect(0,0,tempRef.current.width,tempRef.current.height)
     canvasCtx.clearRect(0,0,canvasRef.current.width,canvasRef.current.height)
@@ -213,16 +200,22 @@ const redo = (e) => {
 
   return (
     <div className="App">
+      <div className='input-container'
+        style={{left:`${coordinates.x}px` ,top:`${coordinates.y}px` }}>
+        {isInput && 
+          <input 
+          ref={inputRef}
+          
+          onBlur={inputBlur}
+            />}
+      </div>
+
       <Toolbar 
       undo={undo}
       redo={redo}/>
-      {isInput && 
-      <input ref={inputRef} 
-      style={{position:'absolute' ,left:`${coordinates.x}px` ,top:`${coordinates.y}px` ,border:'1px solid black',zIndex:99}}
-      onBlur={inputBlur}
-       />}
+   
       <canvas className='temp-canvas' ref={tempRef} style={{position:'absolute'}}></canvas>
-
+    
       <canvas ref={canvasRef} style={{display:'block'}}></canvas>
      
     </div>

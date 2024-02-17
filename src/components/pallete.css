@@ -18,6 +18,26 @@
     box-shadow: none !important;
 }
 
+.stroke-width-container{
+    display: flex;
+    gap: 4px;
+    
+}
+.stroke-width-container .stroke-width{
+    background-color: #f2f2f7;
+    display: flex;
+    border-radius: 6px;
+    align-items: center;
+    justify-self: center;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+}
+.stroke-width-container .stroke-width svg{
+    width: 100%;
+    height: 100%;
+}
+
 @media screen and (max-width:600px) {
     .pallete-container{
         top: -20px;
