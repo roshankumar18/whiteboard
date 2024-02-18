@@ -3,6 +3,8 @@ import './App.css';
 import Toolbar from './components/Toolbar';
 import useTool from './utils/tools';
 import usePallete from './utils/usePalette';
+import { RoughCanvas } from 'roughjs/bin/canvas';
+import draw from './helpers/draw';
 
 function App() {
   const canvasRef = useRef()
@@ -12,12 +14,13 @@ function App() {
   const [coordinates,setCoordinates] = useState({x:0,y:0})
   const [mouseDown ,setMouseDown] = useState(false)
   const [canvasCtx ,setCanvasCtx] = useState(null)
+  const [roughCanvas, setRoughCanvas] = useState(null)
   const [undoState, setUndoState] = useState([])
   const [redoState, setRedoState] = useState([])
   const [tempCanvasCtx ,setTempCanvasCtx] = useState(null)
   const [isInput ,setIsInput] = useState(false)
   const {tools,reset} = useTool()
-  const {pencil,square,line,text} = tools
+  const {pencil,square,line,text,ellipse} = tools
   const {pallete} = usePallete()
 
   useEffect(()=>{
@@ -25,9 +28,12 @@ function App() {
     if(canvasRef){
       const canvas = canvasRef.current
       const tempCanvas = tempRef.current
+      const roughCanvas = new RoughCanvas(tempCanvas)
+      setRoughCanvas(roughCanvas)
       const ctx=  canvas.getContext("2d")
       const tempCtx=  tempCanvas.getContext("2d")
-      ctx.imageSmoothingEnabled = true
+      // ctx.imageSmoothingEnabled = true
+      
       setCanvasCtx(ctx)
       setTempCanvasCtx(tempCtx)
       canvas.width = window.innerWidth
@@ -64,29 +70,14 @@ function App() {
     tempCanvasCtx.lineWidth = pallete.strokeWidth
     tempCanvasCtx.lineCap = 'round'
     
-    const mouseMove = (e) =>{
-      if(pencil){
-        tempCanvasCtx.clearRect(0, 0, tempRef.current.width, tempRef.current.height)
-        tempCanvasCtx.lineTo(e.clientX,e.clientY)
-        tempCanvasCtx.stroke()
-      }
-
-      if(line){
-        tempCanvasCtx.clearRect(0, 0, tempRef.current.width, tempRef.current.height)
-        tempCanvasCtx.beginPath()
-        tempCanvasCtx.moveTo(coordinates.x,coordinates.y)
-        tempCanvasCtx.lineTo(e.clientX,e.clientY)
-        tempCanvasCtx.stroke()
-      }
-      if(square){
-        tempCanvasCtx.clearRect(0, 0, tempRef.current.width, tempRef.current.height)
-        tempCanvasCtx.strokeRect(
-          coordinates.x,
-          coordinates.y,
-          e.clientX-coordinates.x,
-          e.clientY-coordinates.y)
-      }
-      
+    const mouseMove = (e) =>{ 
+      const canvasHeight = tempRef.current.height
+      const canvasWidth = tempRef.current.width
+      const option = {
+            stroke:pallete.color.hex,
+            strokeWidth:pallete.strokeWidth
+          }
+      draw(tools, coordinates.x, coordinates.y, e.clientX, e.clientY,tempCanvasCtx, roughCanvas, canvasWidth, canvasHeight, option)
 
     }
     tempRef.current.addEventListener('mousemove',mouseMove)
@@ -128,12 +119,11 @@ function App() {
 
   const handleMouseUp = useCallback((e) =>{
     setMouseDown(false)
-    
     canvasCtx.drawImage(tempRef.current,0,0)
     tempCanvasCtx.clearRect(0, 0, tempRef.current.width, tempRef.current.height)
     const _tempDrawingState = [...undoState,canvasRef.current.toDataURL()]
     setUndoState(_tempDrawingState)
-  },[canvasCtx,tempCanvasCtx])
+  },[canvasCtx,tempCanvasCtx,undoState])
 
   useEffect(()=>{
     tempRef.current.addEventListener('mousedown',handleMouseDown)

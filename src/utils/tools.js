@@ -8,6 +8,7 @@ export const ToolPovider = ({children}) =>{
         pencil:false,
         square:false,
         text:false,
+        ellipse:false,
         select:true
     })
 
@@ -18,7 +19,8 @@ export const ToolPovider = ({children}) =>{
           pencil: type === 'pencil',
           square: type === 'square',
           text: type === 'text',
-          select: type === 'select'
+          ellipse: type === 'ellipse',
+          select: type === 'select',
         }))
       }
 

@@ -34,7 +34,7 @@ export const PalleteProvider =  ({children}) =>{
        setPallete(prev=>( {...prev, [type]:value}))
     }
     return (
-        <Pallete.Provider value={{open, setOpen, pallete, changePallete}}>
+        <Pallete.Provider value={{open, setOpen, pallete , changePallete}}>
             {children}
         </Pallete.Provider>
     )

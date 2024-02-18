@@ -2,7 +2,7 @@ import React, { memo } from 'react'
 import  './toolbar.css'
 import useTool from '../utils/tools'
 
-import { Minus, MousePointer, Palette, Pencil, Redo, Square, Type, Undo } from 'lucide-react'
+import { Circle, Minus, MousePointer, Palette, Pencil, Redo, Square, Type, Undo } from 'lucide-react'
 import usePallete from '../utils/usePalette'
 import Pallete from './Pallete'
 
@@ -26,6 +26,10 @@ const toolItems = [
   {
     type:'text',
     icon : () => <Type size={16} />
+  },
+  {
+    type:'ellipse',
+    icon : () => <Circle size={16}/>
   }]
 
 const Toolbar = ({undo ,redo}) => {
