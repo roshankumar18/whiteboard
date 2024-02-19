@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import './App.css';
 import Toolbar from './components/Toolbar';
 import useTool from './utils/tools';
@@ -11,7 +11,7 @@ import useSocket from './utils/useSocket';
 function App() {
   const canvasRef = useRef()
   const tempRef = useRef()
-  const inputRef = useRef()
+  const inputRef = useRef(null)
   const textStartCoordinates = useRef({x:0,y:0})
   const [coordinates,setCoordinates] = useState({x:0,y:0})
   const [mouseDown ,setMouseDown] = useState(false)
@@ -25,7 +25,26 @@ function App() {
   const {pencil,square,line,text,ellipse} = tools
   const {pallete} = usePallete()
   const {socket} = useSocket()
+ 
+  useEffect(() => {
+    let timeout;
 
+    const focusInput = () => {
+      if (inputRef.current && isInput) {
+        console.log(inputRef)
+        inputRef.current.focus();
+        textStartCoordinates.current.x = inputRef.current.offsetLeft;
+        textStartCoordinates.current.y = inputRef.current.offsetTop;
+        console.log(textStartCoordinates.current.x);
+      }
+    };
+
+    timeout = setTimeout(focusInput, 0);
+
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, [inputRef, isInput]);
   useEffect(()=>{
    
     if(canvasRef){
@@ -156,15 +175,13 @@ function App() {
     }
     if(text){
       setIsInput(true)
-    }else{
-      setIsInput(false)
     }
     
     let roomId =  localStorage.getItem('roomUuid').split('/').pop().replace('"', '')
-    
+    if(!socket) return
     socket.emit('mouseDown', roomId, e.clientX, e.clientY)
 
-  },[text,pencil,mouseDown])
+  },[text,pencil,mouseDown,socket])
 
   const saveDrawingOnMainCanvas = () =>{
     setMouseDown(false)
@@ -192,22 +209,25 @@ function App() {
     }
   },[canvasCtx,text,undoState,tempRef,handleMouseDown,handleMouseUp])
 
-  useEffect(() => {
-    console.log(inputRef)
-    if (inputRef.current && isInput) {
-      inputRef.current.focus();
-      textStartCoordinates.current.x = inputRef.current.offsetLeft;
-      textStartCoordinates.current.y = inputRef.current.offsetTop;
-    }
-  }, [inputRef, isInput]);
+
 
  
-  const inputBlur = () =>{
-    setIsInput(false)
-    canvasCtx.font='16px serif'
-    canvasCtx.textBaseline = 'middle'
+  const inputBlur = (e) =>{
+    // e.preventDefault()
+    let myFont = new FontFace("virgil", "url(fonts/Virgil.woff2)");
+
+    const text = inputRef.current.value
+
+    myFont.load().then((font) => {
     
-    canvasCtx.fillText(inputRef.current.value, textStartCoordinates.current.x+1 , textStartCoordinates.current.y+1)
+    console.log(canvasCtx)
+     document.fonts.add(font)
+     canvasCtx.font = `16px ${myFont.family}`
+     canvasCtx.textBaseline = 'bottom'
+     canvasCtx.fillText(text, textStartCoordinates.current.x , textStartCoordinates.current.y)
+    });
+    
+    setIsInput(false)
     reset()
   }
 
@@ -248,15 +268,17 @@ const redo = (e) => {
 
   return (
     <div className="App">
-      <div className='input-container'
-        style={{left:`${coordinates.x}px` ,top:`${coordinates.y}px` }}>
+      {/* <div className='input-container'
+        style={{left:`${coordinates.x}px` ,top:`${coordinates.y}px` }}> */}
         {isInput && 
-          <input 
+          <textarea 
+          className='input-container'
+          style={{left:`${coordinates.x}px` ,top:`${coordinates.y}px` }}
           ref={inputRef}
-          
           onBlur={inputBlur}
-            />}
-      </div>
+            />
+           }
+      {/* </div> */}
 
       <Toolbar 
       undo={undo}
