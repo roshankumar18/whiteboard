@@ -5,6 +5,8 @@ import useTool from './utils/tools';
 import usePallete from './utils/usePalette';
 import { RoughCanvas } from 'roughjs/bin/canvas';
 import draw from './helpers/draw';
+import {io} from 'socket.io-client'
+import useSocket from './utils/useSocket';
 
 function App() {
   const canvasRef = useRef()
@@ -22,6 +24,7 @@ function App() {
   const {tools,reset} = useTool()
   const {pencil,square,line,text,ellipse} = tools
   const {pallete} = usePallete()
+  const {socket} = useSocket()
 
   useEffect(()=>{
    
@@ -40,10 +43,13 @@ function App() {
       canvas.height = window.innerHeight
       tempCanvas.width = window.innerWidth
       tempCanvas.height = window.innerHeight
- 
+
     }
   },[])
   
+
+
+
   useEffect(()=>{
     const scaleFactor = window.devicePixelRatio;
     const canvas = canvasRef.current
@@ -61,13 +67,42 @@ function App() {
     }
   },[])
 
+  useEffect(() => {
+    if (!socket || !tempCanvasCtx) return;
+  
+    const drawClientHandler = (tools, x1, y1, x2, y2, width, height, option) => {
+      draw(tools, x1, y1, x2, y2, tempCanvasCtx, roughCanvas, width, height, option);
+      console.log('draw client called');
+    };
+  
+    const saveDrawingHandler = () =>{
+      console.log('save called')
+      saveDrawingOnMainCanvas()
+    }
+    
+    const mouseDownHandler = (x1,y1) =>{
+      console.log('mouse down')
+      tempCanvasCtx.beginPath()
+      tempCanvasCtx.moveTo(x1,y1)
+    }
+    socket.on('drawClient', drawClientHandler);
+    socket.on('saveDrawing',saveDrawingHandler);
+    socket.on('mouseDown',mouseDownHandler)
+  
+    return () => {
+      socket.off('drawClient', drawClientHandler);
+      socket.off('saveDrawing',saveDrawingHandler)
+      socket.off('mouseDown',mouseDownHandler)
+    };
+  }, [socket, tempCanvasCtx]);
 
   useEffect(()=>{
     if(!mouseDown)
       return
     tempCanvasCtx.beginPath()
-    tempCanvasCtx.moveTo(coordinates.x,coordinates.y)
-    tempCanvasCtx.lineWidth = pallete.strokeWidth
+    // tempCanvasCtx.moveTo(coordinates.x,coordinates.y)
+    // tempCanvasCtx.lineWidth = pallete.strokeWidth
+    // tempCanvasCtx.strokeStyle = pallete.color.hex
     tempCanvasCtx.lineCap = 'round'
     
     const mouseMove = (e) =>{ 
@@ -75,10 +110,19 @@ function App() {
       const canvasWidth = tempRef.current.width
       const option = {
             stroke:pallete.color.hex,
-            strokeWidth:pallete.strokeWidth
+            strokeWidth:pallete.strokeWidth,
+            roughness:pallete.roughness,
+            // bowing:4
           }
       draw(tools, coordinates.x, coordinates.y, e.clientX, e.clientY,tempCanvasCtx, roughCanvas, canvasWidth, canvasHeight, option)
+      
+      if(localStorage.getItem('roomUuid')){
+        
+        let roomId =  localStorage.getItem('roomUuid').split('/').pop().replace('"', '')
 
+        socket.emit('drawImage',roomId,tools,coordinates.x,coordinates.y,e.clientX, e.clientY,canvasWidth,canvasHeight,option)
+      }
+      
     }
     tempRef.current.addEventListener('mousemove',mouseMove)
     return () => {
@@ -89,13 +133,13 @@ function App() {
 
 
 
-  useEffect(()=>{
-    if(canvasCtx===null || tempCanvasCtx===null)
-      return
-    canvasCtx.strokeStyle = pallete.color.hex
-    tempCanvasCtx.strokeStyle =pallete.color.hex
-    console.log(pallete.color)
-  },[canvasCtx,tempCanvasCtx,pallete.color])
+  // useEffect(()=>{
+  //   if(canvasCtx===null || tempCanvasCtx===null)
+  //     return
+  //   canvasCtx.strokeStyle = pallete.color.hex
+  //   tempCanvasCtx.strokeStyle =pallete.color.hex
+  //   console.log(pallete.color)
+  // },[canvasCtx,tempCanvasCtx,pallete.color])
 
   const handleMouseDown = useCallback((e) =>{
     console.log(e.clientX,e.clientY)
@@ -115,14 +159,28 @@ function App() {
     }else{
       setIsInput(false)
     }
+    
+    let roomId =  localStorage.getItem('roomUuid').split('/').pop().replace('"', '')
+    
+    socket.emit('mouseDown', roomId, e.clientX, e.clientY)
+
   },[text,pencil,mouseDown])
 
-  const handleMouseUp = useCallback((e) =>{
+  const saveDrawingOnMainCanvas = () =>{
     setMouseDown(false)
     canvasCtx.drawImage(tempRef.current,0,0)
     tempCanvasCtx.clearRect(0, 0, tempRef.current.width, tempRef.current.height)
     const _tempDrawingState = [...undoState,canvasRef.current.toDataURL()]
     setUndoState(_tempDrawingState)
+  }
+
+  const handleMouseUp = useCallback((e) =>{
+    saveDrawingOnMainCanvas()
+
+    let roomId =  localStorage.getItem('roomUuid').split('/').pop().replace('"', '')
+    socket.emit('saveDrawing',roomId)
+
+   
   },[canvasCtx,tempCanvasCtx,undoState])
 
   useEffect(()=>{

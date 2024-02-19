@@ -28,7 +28,8 @@ export const PalleteProvider =  ({children}) =>{
             "oldHue": 155.87628865979383,
             "source": "hex"
         },
-        strokeWidth:1
+        strokeWidth:1,
+        roughness :1
     })
     const changePallete = (type,value) =>{
        setPallete(prev=>( {...prev, [type]:value}))

@@ -1,10 +1,11 @@
-import React, { memo } from 'react'
+import React, { memo, useState } from 'react'
 import  './toolbar.css'
 import useTool from '../utils/tools'
 
 import { Circle, Minus, MousePointer, Palette, Pencil, Redo, Square, Type, Undo } from 'lucide-react'
 import usePallete from '../utils/usePalette'
 import Pallete from './Pallete'
+import ShareModal from './shareModal/ShareModal'
 
 const toolItems = [
   {
@@ -36,6 +37,7 @@ const Toolbar = ({undo ,redo}) => {
 
     const {tools,toggle}= useTool()
     const {open,setOpen} = usePallete()
+    const [modal,setModal] = useState(false)
   return (
     <>
     <div className='topbar-container'>
@@ -49,14 +51,14 @@ const Toolbar = ({undo ,redo}) => {
           {toolItems.map(({type,icon:Icon},index)=>{
             return (
               
-            <div key={type} onClick={()=>toggle(type)} className={tools[type]===true?'selected':''}>
+            <button key={type} onClick={()=>toggle(type)} className={tools[type]===true?'selected':''}>
               {<Icon size={16}/>}
-            </div>)
+            </button>)
           })}
 
         </div>
         <div className='share mobile'>
-           <div>Share</div>
+           <button onClick={()=>setModal(true)}>Share</button>
         </div>
     </div>
     <div className='bottom-container'>
@@ -76,6 +78,8 @@ const Toolbar = ({undo ,redo}) => {
         </div>
 
     </div>
+    {modal && <ShareModal setModal={setModal}/>}
+    
     </>
   )
 }

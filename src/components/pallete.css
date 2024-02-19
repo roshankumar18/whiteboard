@@ -36,6 +36,12 @@
 .stroke-width-container .stroke-width svg{
     width: 100%;
     height: 100%;
+    cursor: pointer;
+}
+
+.pallete-container .roughness-container{
+    position: relative;
+    cursor: pointer;
 }
 
 @media screen and (max-width:600px) {

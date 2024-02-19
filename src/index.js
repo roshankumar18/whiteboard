@@ -1,19 +1,21 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { ToolPovider } from './utils/tools';
 import { PalleteProvider } from './utils/usePalette';
+import Router from './Router';
+import { SocketProvider } from './utils/useSocket';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <PalleteProvider>
-    <ToolPovider>
-      <App />
-    </ToolPovider>
-    
-  </PalleteProvider>
+  <SocketProvider>
+    <PalleteProvider>
+      <ToolPovider>
+        <Router />
+      </ToolPovider>
+    </PalleteProvider>
+  </SocketProvider>
 
 );
 

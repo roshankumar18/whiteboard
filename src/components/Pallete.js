@@ -26,19 +26,35 @@ const Pallete = () => {
              colors={['#000000','#FF6900', '#FCB900', '#7BDCB5',]}
              triangle='hide'/>
             <div>
-              Stroke width
-            </div>
-            <div className='stroke-width-container'>
-            {Array(4).fill('').map((_,index)=>{
-                  return <div className='stroke-width'>
-                            <Minus 
-                            key={index} 
-                            style={{strokeWidth:index+1}}
-                            onClick={()=>changePallete('strokeWidth',(index+1)*2)}/>
-                        </div>
-                })}
+              <div>
+                Stroke width
+              </div>
+              <div className='stroke-width-container'>
+              {Array(4).fill('').map((_,index)=>{
+                    return <div className='stroke-width'>
+                              <Minus 
+                              key={index} 
+                              style={{strokeWidth:index+1}}
+                              onClick={()=>changePallete('strokeWidth',(index+1)*2)}/>
+                          </div>
+                  })}
 
+              </div>
             </div>
+            <div className='roughness-container'>
+                  <div>Roughness</div>
+                  <div>
+                    <input 
+                      type='range' 
+                      defaultValue={1}
+                      min={0} 
+                      max={4} 
+                      step={0.2}
+                      onChange={(e)=>changePallete('roughness',e.target.value)} />
+                  </div>
+            </div>
+            
+
             
         </div>}
     </>

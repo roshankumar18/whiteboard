@@ -1,6 +1,8 @@
 const draw = ({pencil, line, square, ellipse }, x1, y1, x2, y2, tempCanvasCtx, roughCanvas, canvasWidth, canvasHeight, option) =>{
     if(pencil){
         tempCanvasCtx.clearRect(0, 0, canvasWidth ,canvasHeight)
+        tempCanvasCtx.lineWidth = option.strokeWidth
+        tempCanvasCtx.strokeStyle = option.stroke
         tempCanvasCtx.lineTo(x2,y2)
         tempCanvasCtx.stroke()
       }
@@ -22,10 +24,6 @@ const draw = ({pencil, line, square, ellipse }, x1, y1, x2, y2, tempCanvasCtx, r
           y1,
           x2-x1,
           y2-y1,
-        //   {
-        //     stroke:pallete.color.hex,
-        //     strokeWidth:pallete.strokeWidth
-        //   }
          option
         )
       }
