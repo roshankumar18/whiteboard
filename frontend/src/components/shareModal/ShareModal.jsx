@@ -8,9 +8,7 @@ const ShareModal = ({setModal}) => {
   const [uuid,setUuid] = useState('');
   const {socket} = useSocket()
 
-  const getId = () =>{
-    return window.location.href+'share/'+shortid.generate()
-  }
+
   useEffect(()=>{
     if(!localStorage.getItem('roomUuid')){  
         const id = getId()    
@@ -23,6 +21,7 @@ const ShareModal = ({setModal}) => {
    }
   },[])
 
+
   useEffect(()=>{
     if(socket && uuid!==''){
         const id = uuid.split('/').slice(-1)[0]
@@ -31,6 +30,13 @@ const ShareModal = ({setModal}) => {
        }
   },[uuid])
 
+  const getId = () =>{
+    return window.location.href+'share/'+shortid.generate()
+  }
+
+  const copy = () =>{
+    navigator.clipboard.writeText(uuid)
+  }
   return (
     <div className='share-modal-container'>
         <div className='share-modal'>
@@ -42,7 +48,7 @@ const ShareModal = ({setModal}) => {
             </div>
             <div className='content'>
                 <div>{uuid}</div>
-                <button className='button'><Copy/></button>
+                <button className='button' onClick={copy}><Copy/></button>
             </div>
         </div>
     </div>

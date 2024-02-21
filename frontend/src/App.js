@@ -13,6 +13,7 @@ function App() {
   const tempRef = useRef()
   const inputRef = useRef(null)
   const textStartCoordinates = useRef({x:0,y:0})
+  const [inputValue, setInputValue] = useState()
   const [coordinates,setCoordinates] = useState({x:0,y:0})
   const [mouseDown ,setMouseDown] = useState(false)
   const [canvasCtx ,setCanvasCtx] = useState(null)
@@ -37,14 +38,29 @@ function App() {
         textStartCoordinates.current.y = inputRef.current.offsetTop;
         console.log(textStartCoordinates.current.x);
       }
-    };
+    }
 
-    timeout = setTimeout(focusInput, 0);
+    timeout = setTimeout(focusInput, 0)
 
     return () => {
-      clearTimeout(timeout);
+      clearTimeout(timeout)
     };
-  }, [inputRef, isInput]);
+  }, [inputRef, isInput])
+
+  // useEffect(()=>{
+  //   let interval =null
+  //   interval = setInterval(saveLocalState,10*1000)
+
+  //   const saveLocalState = () =>{
+  //     localStorage.setItem('drawingState',canvasCtx)
+  //   }
+  //   return ()=>{
+  //     if(interval){
+  //       clearInterval(interval)
+  //     }
+  //   }
+  // },[])
+
   useEffect(()=>{
    
     if(canvasRef){
@@ -66,7 +82,19 @@ function App() {
     }
   },[])
   
+  useEffect(() => {
+    if (inputRef.current) {
+       inputRef.current.style.height = "0px";
+      const {scrollHeight,scrollWidth, clientWidth } = inputRef.current;
 
+      // We then set the height directly, outside of the render loop
+      // Trying to set this with state or a ref will product an incorrect value.
+      inputRef.current.style.height = scrollHeight + "px";
+      const newWidth = scrollWidth > clientWidth ? scrollWidth : clientWidth;
+      inputRef.current.style.width = `${newWidth}px`;
+      console.log(scrollWidth,clientWidth)
+    }
+  }, [inputRef, inputValue]);
 
 
   useEffect(()=>{
@@ -97,21 +125,48 @@ function App() {
     const saveDrawingHandler = () =>{
       console.log('save called')
       saveDrawingOnMainCanvas()
+      tempCanvasCtx.beginPath()
     }
     
-    const mouseDownHandler = (x1,y1) =>{
+    const mouseDownHandler = (x1, y1, tools, option) =>{
       console.log('mouse down')
       tempCanvasCtx.beginPath()
       tempCanvasCtx.moveTo(x1,y1)
+      if(tools['pencil']){
+        draw(tools, x1, y1, x1, y1, tempCanvasCtx, roughCanvas, tempRef.current.width, tempRef.current.height, option)
+      }
+        
+      
+    }
+
+    const drawTextHandler =(data, x, y, lineHeight, option) =>{
+      let myFont = new FontFace("virgil", "url(fonts/Virgil.woff2)");
+      console.log(data,x,y,line,option)
+      let text = data.split('\n')
+      
+  
+      myFont.load().then((font) => {
+       document.fonts.add(font)
+       canvasCtx.font = `${pallete.fontSize}px ${myFont.family}`
+       const measureText = canvasCtx.measureText(text)
+       var lineHeight = 5 
+       for(var i =0;i<text.length;i++){
+        canvasCtx.fillText(text[i], x , y+ (measureText.actualBoundingBoxAscent*(i+1))+lineHeight)
+        
+       }
+
+      });
     }
     socket.on('drawClient', drawClientHandler);
     socket.on('saveDrawing',saveDrawingHandler);
     socket.on('mouseDown',mouseDownHandler)
+    socket.on('drawText',drawTextHandler)
   
     return () => {
       socket.off('drawClient', drawClientHandler);
       socket.off('saveDrawing',saveDrawingHandler)
       socket.off('mouseDown',mouseDownHandler)
+      socket.off('drawText',drawTextHandler)
     };
   }, [socket, tempCanvasCtx]);
 
@@ -122,8 +177,7 @@ function App() {
     // tempCanvasCtx.moveTo(coordinates.x,coordinates.y)
     // tempCanvasCtx.lineWidth = pallete.strokeWidth
     // tempCanvasCtx.strokeStyle = pallete.color.hex
-    tempCanvasCtx.lineCap = 'round'
-    
+
     const mouseMove = (e) =>{ 
       const canvasHeight = tempRef.current.height
       const canvasWidth = tempRef.current.width
@@ -152,15 +206,16 @@ function App() {
 
 
 
-  // useEffect(()=>{
-  //   if(canvasCtx===null || tempCanvasCtx===null)
-  //     return
-  //   canvasCtx.strokeStyle = pallete.color.hex
-  //   tempCanvasCtx.strokeStyle =pallete.color.hex
-  //   console.log(pallete.color)
-  // },[canvasCtx,tempCanvasCtx,pallete.color])
+
 
   const handleMouseDown = useCallback((e) =>{
+    const option = {
+      stroke:pallete.color.hex,
+      strokeWidth:pallete.strokeWidth,
+      roughness:pallete.roughness,
+      // bowing:4
+    }
+    let roomId =  localStorage.getItem('roomUuid').split('/').pop().replace('"', '')
     console.log(e.clientX,e.clientY)
     setMouseDown(true)
     setCoordinates({
@@ -168,20 +223,22 @@ function App() {
       y:e.clientY
     })
     if(pencil){
-      console.log(pencil,'called')
+      tempCanvasCtx.beginPath()
+      tempCanvasCtx.lineWidth = option.strokeWidth
+      tempCanvasCtx.strokeStyle = option.stroke
       tempCanvasCtx.moveTo(e.clientX,e.clientY)
       tempCanvasCtx.lineTo(e.clientX,e.clientY)
       tempCanvasCtx.stroke()
-    }
+      }
     if(text){
       setIsInput(true)
     }
     
-    let roomId =  localStorage.getItem('roomUuid').split('/').pop().replace('"', '')
+    
     if(!socket) return
-    socket.emit('mouseDown', roomId, e.clientX, e.clientY)
+    socket.emit('mouseDown', roomId, e.clientX, e.clientY ,tools ,option)
 
-  },[text,pencil,mouseDown,socket])
+  },[text,pencil,mouseDown,socket,pallete,tools])
 
   const saveDrawingOnMainCanvas = () =>{
     setMouseDown(false)
@@ -215,18 +272,37 @@ function App() {
   const inputBlur = (e) =>{
     // e.preventDefault()
     let myFont = new FontFace("virgil", "url(fonts/Virgil.woff2)");
-
-    const text = inputRef.current.value
+    const data = inputRef.current.value
+    const text = inputRef.current.value.split('\n')
+    console.log(inputRef.current)
 
     myFont.load().then((font) => {
-    
+    const option = {
+      stroke:pallete.color.hex,
+      strokeWidth:pallete.strokeWidth,
+      roughness:pallete.roughness,
+      // bowing:4
+    }
     console.log(canvasCtx)
      document.fonts.add(font)
-     canvasCtx.font = `16px ${myFont.family}`
-     canvasCtx.textBaseline = 'bottom'
-     canvasCtx.fillText(text, textStartCoordinates.current.x , textStartCoordinates.current.y)
+     canvasCtx.font = `${pallete.fontSize}px ${myFont.family}`
+     const measureText = canvasCtx.measureText(text)
+     var lineHeight = 5 
+     for(var i =0;i<text.length;i++){
+      canvasCtx.fillText(text[i], textStartCoordinates.current.x , textStartCoordinates.current.y+(measureText.actualBoundingBoxAscent*(i+1))+lineHeight)
+      
+     }
+    if(localStorage.getItem('roomUuid')){
+      
+    let roomId =  localStorage.getItem('roomUuid').split('/').pop().replace('"', '')
+
+    socket.emit('drawText', roomId, data, textStartCoordinates.current.x, textStartCoordinates.current.y, lineHeight, option)
+    }
+    //  canvasCtx.textBaseline = 'bottom'
     });
-    
+        
+
+    setInputValue('')
     setIsInput(false)
     reset()
   }
@@ -266,6 +342,11 @@ const redo = (e) => {
   }
 }
 
+const inputChange = (e) =>{
+  setInputValue(e.target.value)
+}
+
+
   return (
     <div className="App">
       {/* <div className='input-container'
@@ -273,7 +354,10 @@ const redo = (e) => {
         {isInput && 
           <textarea 
           className='input-container'
-          style={{left:`${coordinates.x}px` ,top:`${coordinates.y}px` }}
+          rows={1}
+          value={inputValue}
+          onChange={inputChange}
+          style={{left:`${coordinates.x}px`,top:`${coordinates.y}px`,fontSize:`${pallete.fontSize}px` }}
           ref={inputRef}
           onBlur={inputBlur}
             />

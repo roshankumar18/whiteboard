@@ -8,12 +8,10 @@
   border: none;
   font-family: Virgil,Arial, Helvetica, sans-serif;
   resize: none;
+  overflow: hidden;
+  background: transparent;
 }
-.App input{
- 
-  /* transform: translatey(-50%); */
-  /* border: none; */
-}
+
 .App .input-container:focus{
   border: none;
   outline: none;

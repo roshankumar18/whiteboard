@@ -34,15 +34,20 @@ io.on('connection', (socket) => {
         socket.to(roomId).emit('saveDrawing')
     })
 
-    socket.on('mouseDown',(roomId, x1, y1)=>{
-        console.log('backedn mouse down',roomId,x1,y1)
-        socket.to(roomId).emit('mouseDown',x1,y1)
+    socket.on('mouseDown',(roomId, x1, y1 ,tools, option)=>{
+        console.log('backedn mouse down',roomId,x1,y1 ,tools, option)
+        socket.to(roomId).emit('mouseDown',x1,y1, tools, option)
+    })
+
+    socket.on('drawText',(roomId, text, x, y, lineHeight, option)=>{
+        socket.to(roomId).emit('drawText',text, x, y, lineHeight, option)
     })
 
     socket.on('disconnect',()=>{
         console.log('a user disconnected',socket.id);
     })
 
+  
 
   });
 httpServer.listen(4000, () => {

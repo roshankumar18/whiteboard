@@ -29,7 +29,8 @@ export const PalleteProvider =  ({children}) =>{
             "source": "hex"
         },
         strokeWidth:1,
-        roughness :1
+        roughness :1,
+        fontSize:16
     })
     const changePallete = (type,value) =>{
        setPallete(prev=>( {...prev, [type]:value}))

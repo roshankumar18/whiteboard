@@ -33,12 +33,27 @@
     height: 30px;
     cursor: pointer;
 }
+.stroke-width-container .font-size{
+    background-color: #f2f2f7;
+    display: flex;
+    border-radius: 6px;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    font-size: 16px;
+    cursor: pointer;
+    font-family: Virgil,Arial, Helvetica, sans-serif;
+}
 .stroke-width-container .stroke-width svg{
     width: 100%;
     height: 100%;
     cursor: pointer;
 }
 
+.stroke-width-container .selected{
+    background-color:white;
+}
 .pallete-container .roughness-container{
     position: relative;
     cursor: pointer;

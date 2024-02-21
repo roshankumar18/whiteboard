@@ -3,10 +3,14 @@ import usePallete from '../../utils/usePalette'
 import './pallete.css'
 import { TwitterPicker } from 'react-color'
 import { Minus } from 'lucide-react'
+import useTool from '../../utils/tools'
+
+const fontSize= ['S','M','L','XL']
+
 const Pallete = () => {
     const {open ,pallete, changePallete} = usePallete()
     const [color,setColor] = useState(pallete.color)
-
+    const {tools} = useTool()
     const onChange = (color,event) =>{
         setColor(color)
         changePallete('color',color)
@@ -41,6 +45,25 @@ const Pallete = () => {
 
               </div>
             </div>
+            {tools.text && <div>
+              <div>
+                Font Size
+              </div>
+              <div className='stroke-width-container'>
+              {fontSize.map((size,index)=>{
+                    return <div 
+                    onClick={()=>changePallete('fontSize',(index+1)*16)}
+                    className={`font-size ${pallete.fontSize/((index+1)*16)===1?'selected':''}`}>
+                    
+                              <span 
+                              key={index} 
+                              style={{strokeWidth:index+1}}
+                              >{size}</span>
+                          </div>
+                  })}
+
+              </div>
+            </div>}
             <div className='roughness-container'>
                   <div>Roughness</div>
                   <div>
