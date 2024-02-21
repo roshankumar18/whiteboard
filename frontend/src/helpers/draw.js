@@ -1,7 +1,9 @@
+
 const draw = ({pencil, line, square, ellipse }, x1, y1, x2, y2, tempCanvasCtx, roughCanvas, canvasWidth, canvasHeight, option) =>{
+    tempCanvasCtx.lineCap = 'round'
+    tempCanvasCtx.lineJoin = 'round'
+
     if(pencil){
-        tempCanvasCtx.lineCap = 'round'
-        tempCanvasCtx.lineJoin = 'round'
         tempCanvasCtx.clearRect(0, 0, canvasWidth ,canvasHeight)
         tempCanvasCtx.lineWidth = option.strokeWidth
         tempCanvasCtx.strokeStyle = option.stroke
@@ -18,8 +20,10 @@ const draw = ({pencil, line, square, ellipse }, x1, y1, x2, y2, tempCanvasCtx, r
           y2,
           option
         )
+
       }
       if(square){
+        console.log(x1,y1,x2,y2,option)
         tempCanvasCtx.clearRect(0, 0, canvasWidth ,canvasHeight)
         roughCanvas.rectangle(
           x1,

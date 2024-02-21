@@ -96,6 +96,40 @@ function App() {
     }
   }, [inputRef, inputValue]);
 
+  useEffect(()=>{
+    if(!tempCanvasCtx || !tempRef) return
+    if(localStorage.getItem('whiteboard')){
+      const whiteboard = JSON.parse(localStorage.getItem('whiteboard'))
+      whiteboard.forEach(element => {
+        const {type, pallete, points} = element
+        const option = {
+          stroke:pallete.color.hex,
+          strokeWidth:pallete.strokeWidth,
+          roughness:pallete.roughness,
+          // bowing:4
+        }
+        tempCanvasCtx.beginPath()
+        if(type==='pencil'){
+          if(element.points.length===1){
+            const [x1,y1] = element.points[0]
+            draw({[type]:true},x1, y1, x1, y1, tempCanvasCtx, roughCanvas, tempRef.current.width, tempRef.current.height, option)
+          }else{
+            for(let i  =1 ;i<element.points.length-1 ;i++){
+              const [x1,y1] = element.points[i-1]
+              const [x2,y2] = element.points[i]
+              draw({[type]:true},x1, y1, x2, y2, tempCanvasCtx, roughCanvas, tempRef.current.width, tempRef.current.height, option)
+            }
+          }
+
+        }
+        else
+          draw({[type]:true},points[0][0], points[0][1], points[1][0], points[1][1], tempCanvasCtx, roughCanvas, tempRef.current.width, tempRef.current.height, option);
+        canvasCtx.drawImage(tempRef.current,0,0)
+      });
+
+    }
+  },[tempCanvasCtx,tempRef])
+
 
   useEffect(()=>{
     const scaleFactor = window.devicePixelRatio;
@@ -171,13 +205,27 @@ function App() {
   }, [socket, tempCanvasCtx]);
 
   useEffect(()=>{
-    if(!mouseDown)
+    if(!mouseDown || tools['select'])
       return
     tempCanvasCtx.beginPath()
     // tempCanvasCtx.moveTo(coordinates.x,coordinates.y)
     // tempCanvasCtx.lineWidth = pallete.strokeWidth
     // tempCanvasCtx.strokeStyle = pallete.color.hex
+    let data;
+    let existingDataArray;
+    if(pencil){
+      const existingDataString = localStorage.getItem('whiteboard');
+      existingDataArray = existingDataString ? JSON.parse(existingDataString) : []; 
+     
+       data = {
+        type:Object.keys(tools).find(key=>tools[key]),
+        points:[[coordinates.x,coordinates.y]],
+        pallete:pallete
+      }
+      existingDataArray.push(data)
+    }
 
+    
     const mouseMove = (e) =>{ 
       const canvasHeight = tempRef.current.height
       const canvasWidth = tempRef.current.width
@@ -185,10 +233,11 @@ function App() {
             stroke:pallete.color.hex,
             strokeWidth:pallete.strokeWidth,
             roughness:pallete.roughness,
-            // bowing:4
           }
       draw(tools, coordinates.x, coordinates.y, e.clientX, e.clientY,tempCanvasCtx, roughCanvas, canvasWidth, canvasHeight, option)
-      
+      if (pencil)
+        data.points.push([e.clientX, e.clientY])
+     console.log(e.clientX,e.clientY)
       if(localStorage.getItem('roomUuid')){
         
         let roomId =  localStorage.getItem('roomUuid').split('/').pop().replace('"', '')
@@ -199,10 +248,12 @@ function App() {
     }
     tempRef.current.addEventListener('mousemove',mouseMove)
     return () => {
+      if(pencil)
+        localStorage.setItem('whiteboard',JSON.stringify(existingDataArray))  
       tempRef.current.removeEventListener('mousemove',mouseMove)
 
     }
-  },[mouseDown,tempRef])
+  },[mouseDown,tempRef,tools])
 
 
 
@@ -216,7 +267,7 @@ function App() {
       // bowing:4
     }
     let roomId =  localStorage.getItem('roomUuid').split('/').pop().replace('"', '')
-    console.log(e.clientX,e.clientY)
+    // console.log(e.clientX,e.clientY)
     setMouseDown(true)
     setCoordinates({
       x:e.clientX,
@@ -226,6 +277,7 @@ function App() {
       tempCanvasCtx.beginPath()
       tempCanvasCtx.lineWidth = option.strokeWidth
       tempCanvasCtx.strokeStyle = option.stroke
+      console.log(e.clientX,e.clientY)
       tempCanvasCtx.moveTo(e.clientX,e.clientY)
       tempCanvasCtx.lineTo(e.clientX,e.clientY)
       tempCanvasCtx.stroke()
@@ -238,7 +290,7 @@ function App() {
     if(!socket) return
     socket.emit('mouseDown', roomId, e.clientX, e.clientY ,tools ,option)
 
-  },[text,pencil,mouseDown,socket,pallete,tools])
+  },[text,pencil,mouseDown,socket,pallete,tools,coordinates])
 
   const saveDrawingOnMainCanvas = () =>{
     setMouseDown(false)
@@ -248,14 +300,28 @@ function App() {
     setUndoState(_tempDrawingState)
   }
 
+  const saveDrawingInLocalStorage = (x, y, tools ,pallete) => {
+    if(tools['select']) return
+    
+    const existingDataString = localStorage.getItem('whiteboard');
+    const existingDataArray = existingDataString ? JSON.parse(existingDataString) : []; 
+   
+    const data = {
+      type:Object.keys(tools).find(key=>tools[key]),
+      points:[[coordinates.x,coordinates.y], [x,y]],
+      pallete:pallete
+    }
+    existingDataArray.push(data)
+    localStorage.setItem('whiteboard',JSON.stringify(existingDataArray))
+  }
+
   const handleMouseUp = useCallback((e) =>{
     saveDrawingOnMainCanvas()
-
+    saveDrawingInLocalStorage(e.clientX, e.clientY , tools, pallete)
     let roomId =  localStorage.getItem('roomUuid').split('/').pop().replace('"', '')
     socket.emit('saveDrawing',roomId)
-
    
-  },[canvasCtx,tempCanvasCtx,undoState])
+  },[canvasCtx,tempCanvasCtx,undoState,tools,pallete,coordinates])
 
   useEffect(()=>{
     tempRef.current.addEventListener('mousedown',handleMouseDown)
