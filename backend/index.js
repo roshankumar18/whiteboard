@@ -5,7 +5,9 @@ const { Server } = require("socket.io");
 require('dotenv').config()
 var cors = require('cors')
 
-app.use(cors())
+app.use(cors({
+    origin:'https://whiteboard-u69n.vercel.app/'
+}))
 
 const httpServer = createServer(app)
 
