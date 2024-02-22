@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { json, useLocation, useNavigate, useParams } from 'react-router-dom'
 import useSocket from '../utils/useSocket'
 
 const Share = () => {
@@ -12,6 +12,8 @@ const Share = () => {
         if(!socket) return 
         socket.emit('join',id)
         localStorage.setItem('roomUuid',JSON.stringify('http://localhost:3000'+location.pathname))
+        socket.emit('getInitialData',id)
+
         navigate('/')
     },[socket])
   return (

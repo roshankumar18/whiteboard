@@ -47,19 +47,6 @@ function App() {
     };
   }, [inputRef, isInput])
 
-  // useEffect(()=>{
-  //   let interval =null
-  //   interval = setInterval(saveLocalState,10*1000)
-
-  //   const saveLocalState = () =>{
-  //     localStorage.setItem('drawingState',canvasCtx)
-  //   }
-  //   return ()=>{
-  //     if(interval){
-  //       clearInterval(interval)
-  //     }
-  //   }
-  // },[])
 
   useEffect(()=>{
    
@@ -195,6 +182,10 @@ function App() {
     socket.on('saveDrawing',saveDrawingHandler);
     socket.on('mouseDown',mouseDownHandler)
     socket.on('drawText',drawTextHandler)
+    socket.on('initialData',(data)=>{
+      console.log('got data',data)
+      localStorage.setItem('initialData',JSON.stringify(data))
+    })
   
     return () => {
       socket.off('drawClient', drawClientHandler);
@@ -208,9 +199,7 @@ function App() {
     if(!mouseDown || tools['select'])
       return
     tempCanvasCtx.beginPath()
-    // tempCanvasCtx.moveTo(coordinates.x,coordinates.y)
-    // tempCanvasCtx.lineWidth = pallete.strokeWidth
-    // tempCanvasCtx.strokeStyle = pallete.color.hex
+
     let data;
     let existingDataArray;
     if(pencil){
@@ -237,7 +226,7 @@ function App() {
       draw(tools, coordinates.x, coordinates.y, e.clientX, e.clientY,tempCanvasCtx, roughCanvas, canvasWidth, canvasHeight, option)
       if (pencil)
         data.points.push([e.clientX, e.clientY])
-     console.log(e.clientX,e.clientY)
+
       if(localStorage.getItem('roomUuid')){
         
         let roomId =  localStorage.getItem('roomUuid').split('/').pop().replace('"', '')
@@ -260,6 +249,7 @@ function App() {
 
 
   const handleMouseDown = useCallback((e) =>{
+    if(!tempRef.current && !tempCanvasCtx) return
     const option = {
       stroke:pallete.color.hex,
       strokeWidth:pallete.strokeWidth,
@@ -275,12 +265,7 @@ function App() {
     })
     if(pencil){
       tempCanvasCtx.beginPath()
-      tempCanvasCtx.lineWidth = option.strokeWidth
-      tempCanvasCtx.strokeStyle = option.stroke
-      console.log(e.clientX,e.clientY)
-      tempCanvasCtx.moveTo(e.clientX,e.clientY)
-      tempCanvasCtx.lineTo(e.clientX,e.clientY)
-      tempCanvasCtx.stroke()
+      draw(tools, e.clientX,e.clientY, e.clientX, e.clientY,tempCanvasCtx, roughCanvas, tempRef.current.width, tempRef.current.height, option)
       }
     if(text){
       setIsInput(true)
@@ -290,9 +275,10 @@ function App() {
     if(!socket) return
     socket.emit('mouseDown', roomId, e.clientX, e.clientY ,tools ,option)
 
-  },[text,pencil,mouseDown,socket,pallete,tools,coordinates])
+  },[text,pencil,tempCanvasCtx, mouseDown,socket,pallete,tools,coordinates,tempRef.current])
 
   const saveDrawingOnMainCanvas = () =>{
+    // console.log(canvasCtx)
     setMouseDown(false)
     canvasCtx.drawImage(tempRef.current,0,0)
     tempCanvasCtx.clearRect(0, 0, tempRef.current.width, tempRef.current.height)
@@ -316,6 +302,7 @@ function App() {
   }
 
   const handleMouseUp = useCallback((e) =>{
+    console.log(tempRef)
     saveDrawingOnMainCanvas()
     saveDrawingInLocalStorage(e.clientX, e.clientY , tools, pallete)
     let roomId =  localStorage.getItem('roomUuid').split('/').pop().replace('"', '')
@@ -330,7 +317,7 @@ function App() {
       tempRef.current.removeEventListener('mousedown',handleMouseDown)
       tempRef.current.removeEventListener('mouseup',handleMouseUp)
     }
-  },[canvasCtx,text,undoState,tempRef,handleMouseDown,handleMouseUp])
+  },[canvasCtx,text,undoState,tempRef,tempCanvasCtx,roughCanvas,handleMouseDown,handleMouseUp])
 
 
 

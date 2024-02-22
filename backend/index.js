@@ -18,11 +18,29 @@ const io = new Server(httpServer,{
 app.get('/', (req, res) => {
   res.send('<h1>Hello world</h1>');
 });
+
+let initialData = []
 io.on('connection', (socket) => {
     console.log('a user connected',socket.id);
 
     socket.on('join',(roomId)=>{
         socket.join(roomId)
+    })
+
+    socket.on('initialData',(roomId, data)=>{
+        const index = initialData.findIndex((value)=>{
+            return roomId == value[roomId]
+        })
+        initialData[index] = {[roomId]:roomId, [data]:data}
+        
+    })
+
+    socket.on('getInitialData',(roomId)=>{
+        console.log('intcalled')
+        const data = initialData.find(value=>{
+            return value[roomId] == roomId
+        })
+        socket.to(roomId).emit('initialData', data )
     })
 
     socket.on('drawImage',(roomId,tools,x1,y1,x2,y2,width,height,option)=>{
@@ -35,7 +53,6 @@ io.on('connection', (socket) => {
     })
 
     socket.on('mouseDown',(roomId, x1, y1 ,tools, option)=>{
-        console.log('backedn mouse down',roomId,x1,y1 ,tools, option)
         socket.to(roomId).emit('mouseDown',x1,y1, tools, option)
     })
 

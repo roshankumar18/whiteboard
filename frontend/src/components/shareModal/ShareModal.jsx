@@ -27,6 +27,7 @@ const ShareModal = ({setModal}) => {
         const id = uuid.split('/').slice(-1)[0]
         console.log(id)
         socket.emit('join',id)
+        socket.emit('initialData', id, JSON.parse(localStorage.getItem('whiteboard')))
        }
   },[uuid])
 
