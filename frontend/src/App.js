@@ -256,7 +256,11 @@ function App() {
       roughness:pallete.roughness,
       // bowing:4
     }
-    let roomId =  localStorage.getItem('roomUuid').split('/').pop().replace('"', '')
+    let roomId
+    if(localStorage.getItem('roomUuid')){
+       roomId =  localStorage.getItem('roomUuid').split('/').pop().replace('"', '')
+    }
+      
     // console.log(e.clientX,e.clientY)
     setMouseDown(true)
     setCoordinates({
