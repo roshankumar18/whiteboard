@@ -7,7 +7,7 @@ const Socket = createContext()
 export const SocketProvider = ({children}) =>{
     const [socket ,setSocket] = useState(null)
     useEffect(()=>{
-        const newSocket = io(process.env.SOCKET_URL || 'http://localhost:4000')
+        const newSocket = io(process.env.REACT_APP_SOCKET_URL || 'http://localhost:4000')
         setSocket(newSocket)
         return ()=> newSocket.disconnect()
       },[])
