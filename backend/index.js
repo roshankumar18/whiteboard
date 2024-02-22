@@ -5,16 +5,15 @@ const { Server } = require("socket.io");
 require('dotenv').config()
 var cors = require('cors')
 
-app.use(cors({
-    origin:'https://whiteboard-u69n.vercel.app/'
-}))
+app.use(cors())
 
 const httpServer = createServer(app)
 
 const PORT = process.env.PORT || 4000
 const io = new Server(httpServer,{
     cors:{
-        origin:'https://whiteboard-u69n.vercel.app/'
+        origin:'https://whiteboard-u69n.vercel.app/',
+        methods: ["GET", "POST"]
     }
 })
 
