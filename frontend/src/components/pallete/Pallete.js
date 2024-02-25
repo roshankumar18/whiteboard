@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
-import usePallete from '../../utils/usePalette'
+import usePallete from '../../hooks/usePalette'
 import './pallete.css'
 import { TwitterPicker } from 'react-color'
 import { Minus } from 'lucide-react'
-import useTool from '../../utils/tools'
+import useTool from '../../hooks/tools'
 
 const fontSize= ['S','M','L','XL']
 

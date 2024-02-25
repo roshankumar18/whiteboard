@@ -1,11 +1,12 @@
-import React, { memo, useState } from 'react'
+import React, { memo, useEffect, useState } from 'react'
 import  './toolbar.css'
-import useTool from '../../utils/tools'
+import useTool from '../../hooks/tools'
 
 import { Circle, Minus, MousePointer, Palette, Pencil, Redo, Square, Type, Undo } from 'lucide-react'
-import usePallete from '../../utils/usePalette'
+import usePallete from '../../hooks/usePalette'
 import Pallete from '../pallete/Pallete'
 import ShareModal from '../shareModal/ShareModal'
+import useSocket from '../../hooks/useSocket'
 
 const toolItems = [
   {
@@ -38,6 +39,19 @@ const Toolbar = ({undo ,redo}) => {
     const {tools,toggle}= useTool()
     const {open,setOpen} = usePallete()
     const [modal,setModal] = useState(false)
+    const {socket} = useSocket()
+    const [count, setCount] = useState(null)
+
+    useEffect(()=>{
+      if(!socket) return
+      socket.on('join-count',(count)=>{
+        console.log(count)
+        setCount(count)
+      })
+      return ()=>{
+        socket.off('join-count')
+      }
+    },[socket])
   return (
     <>
     <div className='topbar-container'>
@@ -58,7 +72,14 @@ const Toolbar = ({undo ,redo}) => {
 
         </div>
         <div className='share mobile'>
-           <button onClick={()=>setModal(true)}>Share</button>
+          
+          <button onClick={()=>setModal(true)}>Share</button>
+          <div>
+            <span className='count'>{count}</span>
+          </div>
+          
+          
+          
         </div>
     </div>
     <div className='bottom-container'>

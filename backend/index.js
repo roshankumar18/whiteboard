@@ -13,6 +13,7 @@ const PORT = process.env.PORT || 4000
 const io = new Server(httpServer,{
     cors:{
         origin:'https://whiteboard-u69n.vercel.app',
+        // origin:'http://localhost:3000',
         credentials:true,
         methods: ["GET", "POST"]
     }
@@ -27,36 +28,46 @@ io.on('connection', (socket) => {
     console.log('a user connected',socket.id);
 
     socket.on('join',(roomId)=>{
+        console.log('user joined room')
         socket.join(roomId)
+        io.to(roomId).emit('join-count',io.sockets.adapter.rooms.get(roomId).size)
+        
     })
 
     socket.on('initialData',(roomId, data)=>{
+        console.log('shared data')
         const index = initialData.findIndex((value)=>{
             return roomId == value[roomId]
         })
-        initialData[index] = {[roomId]:roomId, [data]:data}
+        
+        if(index===-1)
+        {
+            initialData = [...initialData,{roomId:roomId, data:data}]
+            
+        }else{
+            initialData[index] = {roomId:roomId, data:data}
+        }
         
     })
 
     socket.on('getInitialData',(roomId)=>{
-        console.log('intcalled')
         const data = initialData.find(value=>{
-            return value[roomId] == roomId
+            
+            return value.roomId == roomId
         })
-        socket.to(roomId).emit('initialData', data )
+        socket.emit('initialData', data )
     })
 
     socket.on('drawImage',(roomId,tools,x1,y1,x2,y2,width,height,option)=>{
-        // console.log(roomId,option)
         socket.to(roomId).emit('drawClient',tools,x1,y1,x2,y2,width,height,option)
     })
 
-    socket.on('saveDrawing',(roomId)=>{
-        socket.to(roomId).emit('saveDrawing')
+    socket.on('saveDrawing',(roomId,data)=>{
+        socket.to(roomId).emit('saveDrawing',data)
     })
 
     socket.on('mouseDown',(roomId, x1, y1 ,tools, option)=>{
-        socket.to(roomId).emit('mouseDown',x1,y1, tools, option)
+        io.to(roomId).emit('mouseDown',x1,y1, tools, option)
     })
 
     socket.on('drawText',(roomId, text, x, y, lineHeight, option)=>{
@@ -65,6 +76,14 @@ io.on('connection', (socket) => {
 
     socket.on('disconnect',()=>{
         console.log('a user disconnected',socket.id);
+        const rooms = socket.adapter.rooms
+        const keys = rooms.keys()
+        while(true){
+            let result = keys.next()
+            if(result.done) break
+            io.to(result.value).emit('join-count',io.sockets.adapter.rooms.get(result.value).size)
+            
+        }
     })
 
   

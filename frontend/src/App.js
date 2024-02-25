@@ -1,12 +1,14 @@
 import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import './App.css';
 import Toolbar from './components/toolbar/Toolbar';
-import useTool from './utils/tools';
-import usePallete from './utils/usePalette';
+import useTool from './hooks/tools';
+import usePallete from './hooks/usePalette';
 import { RoughCanvas } from 'roughjs/bin/canvas';
 import draw from './helpers/draw';
-import {io} from 'socket.io-client'
-import useSocket from './utils/useSocket';
+import useSocket from './hooks/useSocket';
+import drawFromLocalStrorage from './helpers/drawFromLocalStorage';
+import getElementIndex from './helpers/getElement';
+import Cursor from './components/cursor/Cursor';
 
 function App() {
   const canvasRef = useRef()
@@ -18,6 +20,7 @@ function App() {
   const [mouseDown ,setMouseDown] = useState(false)
   const [canvasCtx ,setCanvasCtx] = useState(null)
   const [roughCanvas, setRoughCanvas] = useState(null)
+  const [selectedElementIndex, setSelectedElementIndex] = useState(null)
   const [undoState, setUndoState] = useState([])
   const [redoState, setRedoState] = useState([])
   const [tempCanvasCtx ,setTempCanvasCtx] = useState(null)
@@ -67,6 +70,8 @@ function App() {
       tempCanvas.height = window.innerHeight
 
     }
+
+
   },[])
   
   useEffect(() => {
@@ -83,38 +88,11 @@ function App() {
     }
   }, [inputRef, inputValue]);
 
+
+
   useEffect(()=>{
     if(!tempCanvasCtx || !tempRef) return
-    if(localStorage.getItem('whiteboard')){
-      const whiteboard = JSON.parse(localStorage.getItem('whiteboard'))
-      whiteboard.forEach(element => {
-        const {type, pallete, points} = element
-        const option = {
-          stroke:pallete.color.hex,
-          strokeWidth:pallete.strokeWidth,
-          roughness:pallete.roughness,
-          // bowing:4
-        }
-        tempCanvasCtx.beginPath()
-        if(type==='pencil'){
-          if(element.points.length===1){
-            const [x1,y1] = element.points[0]
-            draw({[type]:true},x1, y1, x1, y1, tempCanvasCtx, roughCanvas, tempRef.current.width, tempRef.current.height, option)
-          }else{
-            for(let i  =1 ;i<element.points.length-1 ;i++){
-              const [x1,y1] = element.points[i-1]
-              const [x2,y2] = element.points[i]
-              draw({[type]:true},x1, y1, x2, y2, tempCanvasCtx, roughCanvas, tempRef.current.width, tempRef.current.height, option)
-            }
-          }
-
-        }
-        else
-          draw({[type]:true},points[0][0], points[0][1], points[1][0], points[1][1], tempCanvasCtx, roughCanvas, tempRef.current.width, tempRef.current.height, option);
-        canvasCtx.drawImage(tempRef.current,0,0)
-      });
-
-    }
+    drawFromLocalStrorage(tempCanvasCtx, roughCanvas, canvasCtx, tempRef)
   },[tempCanvasCtx,tempRef])
 
 
@@ -127,24 +105,34 @@ function App() {
       canvas.height = window.innerHeight * scaleFactor
       tempCanvas.width = window.innerWidth * scaleFactor
       tempCanvas.height = window.innerHeight * scaleFactor
+      if(!tempCanvas || !canvasCtx) return
+      drawFromLocalStrorage(tempCanvasCtx, roughCanvas, canvasCtx, tempRef)
     } 
-
+    
     window.addEventListener('resize',handleResize)
     return () =>{
       window.removeEventListener('resize',handleResize)
     }
-  },[])
+  },[tempCanvasCtx,canvasCtx,tempRef])
 
   useEffect(() => {
     if (!socket || !tempCanvasCtx) return;
+
+    if(localStorage.getItem('roomUuid')){
+      let roomId =  localStorage.getItem('roomUuid').split('/').pop().replace('"', '')
+      socket.emit('join',roomId)
+    }
   
     const drawClientHandler = (tools, x1, y1, x2, y2, width, height, option) => {
       draw(tools, x1, y1, x2, y2, tempCanvasCtx, roughCanvas, width, height, option);
       console.log('draw client called');
     };
   
-    const saveDrawingHandler = () =>{
-      console.log('save called')
+    const saveDrawingHandler = (element) =>{
+      const existingDataString = localStorage.getItem('whiteboard');
+      const existingDataArray = existingDataString ? JSON.parse(existingDataString) : []; 
+      existingDataArray.push(element)
+      localStorage.setItem('whiteboard', JSON.stringify(existingDataArray))
       saveDrawingOnMainCanvas()
       tempCanvasCtx.beginPath()
     }
@@ -183,8 +171,8 @@ function App() {
     socket.on('mouseDown',mouseDownHandler)
     socket.on('drawText',drawTextHandler)
     socket.on('initialData',(data)=>{
-      console.log('got data',data)
-      localStorage.setItem('initialData',JSON.stringify(data))
+      localStorage.setItem('whiteboard',JSON.stringify(data.data))
+      drawFromLocalStrorage(tempCanvasCtx, roughCanvas, canvasCtx, tempRef)
     })
   
     return () => {
@@ -196,16 +184,16 @@ function App() {
   }, [socket, tempCanvasCtx]);
 
   useEffect(()=>{
-    if(!mouseDown || tools['select'])
-      return
+    if(!mouseDown ) return
+      
     tempCanvasCtx.beginPath()
 
     let data;
-    let existingDataArray;
+    const existingDataString = localStorage.getItem('whiteboard');
+    const existingDataArray = existingDataString ? JSON.parse(existingDataString) : []; 
+    
     if(pencil){
-      const existingDataString = localStorage.getItem('whiteboard');
-      existingDataArray = existingDataString ? JSON.parse(existingDataString) : []; 
-     
+
        data = {
         type:Object.keys(tools).find(key=>tools[key]),
         points:[[coordinates.x,coordinates.y]],
@@ -216,6 +204,10 @@ function App() {
 
     
     const mouseMove = (e) =>{ 
+      if(tools.select && selectedElementIndex){
+        const element = existingDataArray[selectedElementIndex]
+        console.log(element);
+      }
       const canvasHeight = tempRef.current.height
       const canvasWidth = tempRef.current.width
       const option = {
@@ -242,7 +234,7 @@ function App() {
       tempRef.current.removeEventListener('mousemove',mouseMove)
 
     }
-  },[mouseDown,tempRef,tools])
+  },[mouseDown,tempRef,tools,selectedElementIndex])
 
 
 
@@ -250,6 +242,13 @@ function App() {
 
   const handleMouseDown = useCallback((e) =>{
     if(!tempRef.current && !tempCanvasCtx) return
+    setMouseDown(true)
+    if(tools.select===true){
+      const elementIndex = getElementIndex(e.clientX, e.clientY)
+      setSelectedElementIndex(elementIndex)
+      
+      return
+    }
     const option = {
       stroke:pallete.color.hex,
       strokeWidth:pallete.strokeWidth,
@@ -262,7 +261,7 @@ function App() {
     }
       
     // console.log(e.clientX,e.clientY)
-    setMouseDown(true)
+    
     setCoordinates({
       x:e.clientX,
       y:e.clientY
@@ -303,14 +302,15 @@ function App() {
     }
     existingDataArray.push(data)
     localStorage.setItem('whiteboard',JSON.stringify(existingDataArray))
+    let roomId =  localStorage.getItem('roomUuid').split('/').pop().replace('"', '')
+    socket.emit('saveDrawing',roomId,data)
   }
 
   const handleMouseUp = useCallback((e) =>{
-    console.log(tempRef)
     saveDrawingOnMainCanvas()
     saveDrawingInLocalStorage(e.clientX, e.clientY , tools, pallete)
-    let roomId =  localStorage.getItem('roomUuid').split('/').pop().replace('"', '')
-    socket.emit('saveDrawing',roomId)
+    
+    // socket.emit('saveDrawing',roomId)
    
   },[canvasCtx,tempCanvasCtx,undoState,tools,pallete,coordinates])
 
@@ -322,6 +322,9 @@ function App() {
       tempRef.current.removeEventListener('mouseup',handleMouseUp)
     }
   },[canvasCtx,text,undoState,tempRef,tempCanvasCtx,roughCanvas,handleMouseDown,handleMouseUp])
+
+
+
 
 
 
@@ -406,8 +409,7 @@ const inputChange = (e) =>{
 
   return (
     <div className="App">
-      {/* <div className='input-container'
-        style={{left:`${coordinates.x}px` ,top:`${coordinates.y}px` }}> */}
+      <Cursor/>
         {isInput && 
           <textarea 
           className='input-container'
@@ -419,7 +421,7 @@ const inputChange = (e) =>{
           onBlur={inputBlur}
             />
            }
-      {/* </div> */}
+     
 
       <Toolbar 
       undo={undo}

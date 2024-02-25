@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import { json, useLocation, useNavigate, useParams } from 'react-router-dom'
-import useSocket from '../utils/useSocket'
+import useSocket from '../hooks/useSocket'
 
 const Share = () => {
     const {id} = useParams()

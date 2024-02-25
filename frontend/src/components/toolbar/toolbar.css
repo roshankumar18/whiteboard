@@ -68,8 +68,24 @@ svg:hover{
     justify-content: center;
     padding: 0;
     cursor: pointer;
+    position: relative;
 }
-
+.share div{
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    background-color: chartreuse;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    right: 0;
+    bottom: -25%;
+}
+.count{
+    font-size: 10px;
+    font-weight: 500;
+}
 .share button{
    padding: 8px ;
     border: none;
