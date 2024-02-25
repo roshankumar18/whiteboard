@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import './style.css'
 import { Copy, X } from 'lucide-react'  
 import shortid from 'shortid'
-import useSocket from '../../utils/useSocket'
+import useSocket from '../../hooks/useSocket'
 
 const ShareModal = ({setModal}) => {
   const [uuid,setUuid] = useState('');

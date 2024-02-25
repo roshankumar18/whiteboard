@@ -2,10 +2,10 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import reportWebVitals from './reportWebVitals';
-import { ToolPovider } from './utils/tools';
-import { PalleteProvider } from './utils/usePalette';
+import { ToolPovider } from './hooks/tools';
+import { PalleteProvider } from './hooks/usePalette';
 import Router from './Router';
-import { SocketProvider } from './utils/useSocket';
+import { SocketProvider } from './hooks/useSocket';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
