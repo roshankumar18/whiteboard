@@ -52,6 +52,15 @@ const Toolbar = ({undo ,redo}) => {
         socket.off('join-count')
       }
     },[socket])
+
+    const getCount = () =>{
+      if(count===null) return 
+      return(
+        <div> 
+        <span className='count'>{count}</span>
+      </div>
+      )
+    }
   return (
     <>
     <div className='topbar-container'>
@@ -74,11 +83,7 @@ const Toolbar = ({undo ,redo}) => {
         <div className='share mobile'>
           
           <button onClick={()=>setModal(true)}>Share</button>
-          <div>
-            <span className='count'>{count}</span>
-          </div>
-          
-          
+          {getCount()}
           
         </div>
     </div>

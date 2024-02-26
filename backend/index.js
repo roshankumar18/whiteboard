@@ -12,8 +12,8 @@ const httpServer = createServer(app)
 const PORT = process.env.PORT || 4000
 const io = new Server(httpServer,{
     cors:{
-        origin:'https://whiteboard-u69n.vercel.app',
-        // origin:'http://localhost:3000',
+        // origin:'https://whiteboard-u69n.vercel.app',
+        origin:'http://localhost:3000',
         credentials:true,
         methods: ["GET", "POST"]
     }
@@ -24,6 +24,7 @@ app.get('/', (req, res) => {
 });
 
 let initialData = []
+const userCusrors = {}
 io.on('connection', (socket) => {
     console.log('a user connected',socket.id);
 
@@ -84,9 +85,13 @@ io.on('connection', (socket) => {
             io.to(result.value).emit('join-count',io.sockets.adapter.rooms.get(result.value).size)
             
         }
+        delete userCusrors[socket.id]
     })
 
-  
+    socket.on('updateCursor',(roomId, cursor)=>{
+        userCusrors[socket.id] = cursor
+        io.to(roomId).emit('updateCursor', userCusrors)
+    })
 
   });
 httpServer.listen(PORT, () => {

@@ -9,6 +9,7 @@ import useSocket from './hooks/useSocket';
 import drawFromLocalStrorage from './helpers/drawFromLocalStorage';
 import getElementIndex from './helpers/getElement';
 import Cursor from './components/cursor/Cursor';
+import useCursor from './hooks/useCursor';
 
 function App() {
   const canvasRef = useRef()
@@ -29,7 +30,8 @@ function App() {
   const {pencil,square,line,text,ellipse} = tools
   const {pallete} = usePallete()
   const {socket} = useSocket()
- 
+  const {cursors} = useCursor()
+  
   useEffect(() => {
     let timeout;
 
@@ -156,7 +158,7 @@ function App() {
   
       myFont.load().then((font) => {
        document.fonts.add(font)
-       canvasCtx.font = `${pallete.fontSize}px ${myFont.family}`
+       canvasCtx.font = `${option.fontSize}px ${myFont.family}`
        const measureText = canvasCtx.measureText(text)
        var lineHeight = 5 
        for(var i =0;i<text.length;i++){
@@ -166,6 +168,9 @@ function App() {
 
       });
     }
+
+    
+
     socket.on('drawClient', drawClientHandler);
     socket.on('saveDrawing',saveDrawingHandler);
     socket.on('mouseDown',mouseDownHandler)
@@ -207,6 +212,7 @@ function App() {
       if(tools.select && selectedElementIndex){
         const element = existingDataArray[selectedElementIndex]
         console.log(element);
+        return
       }
       const canvasHeight = tempRef.current.height
       const canvasWidth = tempRef.current.width
@@ -300,6 +306,9 @@ function App() {
       points:[[coordinates.x,coordinates.y], [x,y]],
       pallete:pallete
     }
+    if(!data.type){
+     return
+    }
     existingDataArray.push(data)
     localStorage.setItem('whiteboard',JSON.stringify(existingDataArray))
     let roomId =  localStorage.getItem('roomUuid').split('/').pop().replace('"', '')
@@ -332,18 +341,17 @@ function App() {
   const inputBlur = (e) =>{
     // e.preventDefault()
     let myFont = new FontFace("virgil", "url(fonts/Virgil.woff2)");
-    const data = inputRef.current.value
+    const textValue = inputRef.current.value
     const text = inputRef.current.value.split('\n')
     console.log(inputRef.current)
-
+    
     myFont.load().then((font) => {
     const option = {
-      stroke:pallete.color.hex,
+      color:pallete.color,
       strokeWidth:pallete.strokeWidth,
       roughness:pallete.roughness,
-      // bowing:4
+      fontSize:pallete.fontSize
     }
-    console.log(canvasCtx)
      document.fonts.add(font)
      canvasCtx.font = `${pallete.fontSize}px ${myFont.family}`
      const measureText = canvasCtx.measureText(text)
@@ -352,11 +360,24 @@ function App() {
       canvasCtx.fillText(text[i], textStartCoordinates.current.x , textStartCoordinates.current.y+(measureText.actualBoundingBoxAscent*(i+1))+lineHeight)
       
      }
+     const existingDataString = localStorage.getItem('whiteboard');
+     const existingDataArray = existingDataString ? JSON.parse(existingDataString) : [];
+     const data = {
+      type:'text',
+      points:[[textStartCoordinates.current.x,textStartCoordinates.current.y]],
+      pallete:option,
+      text:textValue
+    }
+   
+    existingDataArray.push(data)
+    localStorage.setItem('whiteboard', JSON.stringify(existingDataArray))
+    
     if(localStorage.getItem('roomUuid')){
       
     let roomId =  localStorage.getItem('roomUuid').split('/').pop().replace('"', '')
 
-    socket.emit('drawText', roomId, data, textStartCoordinates.current.x, textStartCoordinates.current.y, lineHeight, option)
+    socket.emit('drawText', roomId, textValue, textStartCoordinates.current.x, textStartCoordinates.current.y, lineHeight, option)
+    socket.emit('saveDrawing',roomId,data)
     }
     //  canvasCtx.textBaseline = 'bottom'
     });
@@ -409,7 +430,11 @@ const inputChange = (e) =>{
 
   return (
     <div className="App">
-      <Cursor/>
+      {cursors.length>0 && 
+        cursors.map((cursor)=>{
+          return <Cursor key={cursor} cursor={cursor}/>
+        })
+      }
         {isInput && 
           <textarea 
           className='input-container'

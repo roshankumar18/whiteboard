@@ -1,8 +1,12 @@
 import React from 'react'
 import './style.css'
-const Cursor = ({x,y}) => {
+const Cursor = (cursor) => {
+    const userId = Object.keys(cursor)[0];
+    let cursorPosition = cursor[userId];
+    const id = Object.keys(cursorPosition)[0]
+    const {clientX,clientY} = cursorPosition[id]
   return (
-    <div style={{left:`${x}px`, right:`${y}px`}} className='cursor'></div>
+    <div style={{left:`${clientX}px`, top:`${clientY}px`}} className='cursor'></div>
   )
 }
 

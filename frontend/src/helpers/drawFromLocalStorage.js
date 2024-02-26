@@ -23,6 +23,21 @@ const drawFromLocalStrorage = (tempCanvasCtx, roughCanvas, canvasCtx, tempRef) =
             }
           }
 
+        }else if(type==='text'){
+          let myFont = new FontFace("virgil", "url(fonts/Virgil.woff2)");
+          let text = element.text.split('\n')
+          
+          myFont.load().then((font) => {
+           document.fonts.add(font)
+           canvasCtx.font = `${pallete.fontSize}px ${myFont.family}`
+           const measureText = canvasCtx.measureText(text)
+           var lineHeight = 5 
+           for(var i =0;i<text.length;i++){
+            canvasCtx.fillText(text[i], points[0][0] , points[0][1]+ (measureText.actualBoundingBoxAscent*(i+1))+lineHeight)
+            
+           }
+    
+          });
         }
         else
           draw({[type]:true},points[0][0], points[0][1], points[1][0], points[1][1], tempCanvasCtx, roughCanvas, tempRef.current.width, tempRef.current.height, option);
