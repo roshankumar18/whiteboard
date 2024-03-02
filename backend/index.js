@@ -3,7 +3,8 @@ const app = express();
 const {createServer} = require('http');
 const { Server } = require("socket.io");
 require('dotenv').config()
-var cors = require('cors')
+var cors = require('cors');
+const { getRandomColor } = require('./utils/getRandomColor');
 
 app.use(cors())
 
@@ -32,6 +33,8 @@ io.on('connection', (socket) => {
         console.log('user joined room')
         socket.join(roomId)
         io.to(roomId).emit('join-count',io.sockets.adapter.rooms.get(roomId).size)
+        const color =  getRandomColor()
+        userCusrors[socket.id]={...userCusrors[socket.id],color}
         
     })
 
@@ -75,6 +78,13 @@ io.on('connection', (socket) => {
         socket.to(roomId).emit('drawText',text, x, y, lineHeight, option)
     })
 
+    socket.on('sendMessage',(roomId,message)=>{
+        socket.to(roomId).emit('receiveMessage',message)
+    })
+
+    socket.on('updateElement',(roomId,element)=>{
+        socket.to(roomId).emit('updateElement',element)
+    })
     socket.on('disconnect',()=>{
         console.log('a user disconnected',socket.id);
         const rooms = socket.adapter.rooms
@@ -83,13 +93,13 @@ io.on('connection', (socket) => {
             let result = keys.next()
             if(result.done) break
             io.to(result.value).emit('join-count',io.sockets.adapter.rooms.get(result.value).size)
-            
+            // io.to(result.value).emit('updateCursor', {clientX:0, clientY:0})
         }
         delete userCusrors[socket.id]
     })
 
     socket.on('updateCursor',(roomId, cursor)=>{
-        userCusrors[socket.id] = cursor
+        userCusrors[socket.id] = {...userCusrors[socket.id], cursor}
         io.to(roomId).emit('updateCursor', userCusrors)
     })
 

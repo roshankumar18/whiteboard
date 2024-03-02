@@ -79,7 +79,6 @@
 //     };
 //   }, [socket, tempCanvasCtx]);
 
- 
 // };
 
 // export default useWhiteboardSocket;
