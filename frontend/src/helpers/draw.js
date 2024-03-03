@@ -21,26 +21,13 @@ const draw = (
     tempCanvasCtx.stroke();
   }
 
-  if(line){
-    tempCanvasCtx.clearRect(0, 0, canvasWidth ,canvasHeight)
-    roughCanvas.line(
-      x1,
-      y1,
-      x2,
-      y2,
-      option
-    )
-
+  if (line) {
+    tempCanvasCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+    roughCanvas.line(x1, y1, x2, y2, option);
   }
-  if(square){
-    tempCanvasCtx.clearRect(0, 0, canvasWidth ,canvasHeight)
-    roughCanvas.rectangle(
-      x1,
-      y1,
-      x2-x1,
-      y2-y1,
-     option
-    )
+  if (square) {
+    tempCanvasCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+    roughCanvas.rectangle(x1, y1, x2 - x1, y2 - y1, option);
   }
   if (ellipse) {
     tempCanvasCtx.clearRect(0, 0, canvasWidth, canvasHeight);

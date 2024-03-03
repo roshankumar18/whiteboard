@@ -13,8 +13,8 @@ const httpServer = createServer(app)
 const PORT = process.env.PORT || 4000
 const io = new Server(httpServer,{
     cors:{
-        // origin:'https://whiteboard-u69n.vercel.app',
-        origin:'http://localhost:3000',
+        origin:'https://whiteboard-u69n.vercel.app',
+        // origin:'http://localhost:3000',
         credentials:true,
         methods: ["GET", "POST"]
     }

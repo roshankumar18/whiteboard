@@ -239,7 +239,7 @@ function Drawing({ setToggle }) {
 
   useEffect(() => {
     // if (!mouseDown) return;
-    if(!tempCanvasCtx) return
+    if (!tempCanvasCtx) return;
     tempCanvasCtx.beginPath();
 
     let data;
@@ -256,14 +256,15 @@ function Drawing({ setToggle }) {
         pallete: pallete,
       };
       existingDataArray.push(data);
+      // localStorage.setItem('whiteboard',JSON.stringify(existingDataArray))
     }
 
     const mouseMove = (e) => {
-      if(tools.select){
-        if(getElementIndex(e.clientX, e.clientY)!==-1){
-          tempRef.current.style.cursor = 'pointer'
-        }else{
-          tempRef.current.style.cursor = 'crosshair'
+      if (tools.select) {
+        if (getElementIndex(e.clientX, e.clientY) !== -1) {
+          tempRef.current.style.cursor = "pointer";
+        } else {
+          tempRef.current.style.cursor = "crosshair";
         }
       }
       if (!mouseDown) return;
@@ -277,36 +278,47 @@ function Drawing({ setToggle }) {
         const offSetX = e.clientX - coordinates.x;
         const offSetY = e.clientY - coordinates.y;
 
-        if(type==='pencil'){
-          console.log(tempRef.current)
-          const newPoints = points.map(point=>[point[0]+offSetX, point[1]+offSetY])
-          console.log(newPoints)
+        if (type === "pencil") {
+          
+          const newPoints = points.map((point) => [
+            point[0] + offSetX,
+            point[1] + offSetY,
+          ]);
+          
           tempCanvasCtx.beginPath();
-          for (let i = 0; i < newPoints.length - 1; i++) {
-
-            let x1, y1, x2, y2
-            if(i===0){
-               [x1, y1] = newPoints[0];
-               [x2, y2] = newPoints[0];
-            }else{
-               [x1, y1] = newPoints[i - 1];
-               [x2, y2] = newPoints[i];
-            }
-
+          if (newPoints.length === 1) {
+            const [x1, y1] = newPoints[0];
             draw(
               { [type]: true },
               x1,
               y1,
-              x2,
-              y2,
+              x1,
+              y1,
               tempCanvasCtx,
               roughCanvas,
               tempRef.current.width,
               tempRef.current.height,
               pallete,
             );
+          } else {
+            for (let i = 1; i < newPoints.length - 1; i++) {
+              const [x1, y1] = newPoints[i - 1];
+              const [x2, y2] = newPoints[i];
+              draw(
+                { [type]: true },
+                x1,
+                y1,
+                x2,
+                y2,
+                tempCanvasCtx,
+                roughCanvas,
+                tempRef.current.width,
+                tempRef.current.height,
+                pallete,
+              );
+            }
           }
-          return
+          return;
         }
         draw(
           { [type]: true },
@@ -340,7 +352,11 @@ function Drawing({ setToggle }) {
         canvasHeight,
         option,
       );
-      if (pencil) data.points.push([e.clientX, e.clientY]);
+      if (pencil) {
+        data.points.push([e.clientX, e.clientY]);
+        existingDataArray.splice(-1,1,data)
+        localStorage.setItem("whiteboard", JSON.stringify(existingDataArray))
+      }
 
       if (localStorage.getItem("roomUuid")) {
         let roomId = localStorage
@@ -365,8 +381,7 @@ function Drawing({ setToggle }) {
     };
     tempRef.current.addEventListener("mousemove", mouseMove);
     return () => {
-      if (pencil)
-        localStorage.setItem("whiteboard", JSON.stringify(existingDataArray));
+        
       tempRef.current.removeEventListener("mousemove", mouseMove);
     };
   }, [mouseDown, tempRef, tools, selectedElement]);
@@ -390,7 +405,7 @@ function Drawing({ setToggle }) {
           console.log(elementIndex);
           const element = existingDataArray.splice(elementIndex, 1);
           const { type, points, pallete } = element[0];
-          pallete.stroke = pallete.color.hex
+          pallete.stroke = pallete.color.hex;
           localStorage.setItem("whiteboard", JSON.stringify(existingDataArray));
           canvasCtx.clearRect(
             0,
@@ -399,7 +414,36 @@ function Drawing({ setToggle }) {
             tempRef.current.height,
           );
           drawFromLocalStrorage(tempCanvasCtx, roughCanvas, canvasCtx, tempRef);
-          console.log(element);
+          
+          if(type==='pencil'){
+            
+            tempCanvasCtx.beginPath();
+            for (let i = 0; i < points.length - 1; i++) {
+              let x1, y1, x2, y2
+              if(i===0){
+                [x1, y1] = points[0];
+                [x2, y2] = points[0];
+              }else{
+                [x1, y1] = points[i - 1];
+                [x2, y2] = points[i];
+              }
+
+              draw(
+                { [type]: true },
+                x1,
+                y1,
+                x2,
+                y2,
+                tempCanvasCtx,
+                roughCanvas,
+                tempRef.current.width,
+                tempRef.current.height,
+                pallete,
+              );
+            }
+
+            return
+          }
           draw(
             { [type]: true },
             points[0][0],
@@ -432,23 +476,6 @@ function Drawing({ setToggle }) {
           .replace('"', "");
       }
 
-      // console.log(e.clientX,e.clientY)
-
-      if (pencil) {
-        tempCanvasCtx.beginPath();
-        draw(
-          tools,
-          e.clientX,
-          e.clientY,
-          e.clientX,
-          e.clientY,
-          tempCanvasCtx,
-          roughCanvas,
-          tempRef.current.width,
-          tempRef.current.height,
-          option,
-        );
-      }
       if (text) {
         setIsInput(true);
       }
@@ -508,6 +535,13 @@ function Drawing({ setToggle }) {
       socket.emit("updateElement", roomId, updatedElement);
       return;
     }
+    if(tools['pencil']) {
+      let existingDataArray = JSON.parse(localStorage.getItem('whiteboard'))
+      let pencilData = existingDataArray[existingDataArray.length-1]
+      socket.emit('saveDrawing',roomId,pencilData)
+      return
+    }
+    
     const data = {
       id: Date.now().toString(),
       type: Object.keys(tools).find((key) => tools[key]),
@@ -520,6 +554,7 @@ function Drawing({ setToggle }) {
     if (!data.type) {
       return;
     }
+    
     existingDataArray.push(data);
     localStorage.setItem("whiteboard", JSON.stringify(existingDataArray));
 

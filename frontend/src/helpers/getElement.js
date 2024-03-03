@@ -17,20 +17,20 @@ const getElementIndex = (x, y) => {
           return true;
         }
         break;
-      
+
       case "ellipse":
         const width = points[1][0] - points[0][0];
         const height = points[1][1] - points[0][1];
-        const centerX = points[0][0] + (width) / 2;
-        const centerY = points[0][1] + (height) / 2;
+        const centerX = points[0][0] + width / 2;
+        const centerY = points[0][1] + height / 2;
         const semiMajorAxis = width / 2;
         const semiMinorAxis = height / 2;
         const normalizedX = (x - centerX) / semiMajorAxis;
         const normalizedY = (y - centerY) / semiMinorAxis;
-        if((normalizedX * normalizedX + normalizedY * normalizedY) <= 1){
+        if (normalizedX * normalizedX + normalizedY * normalizedY <= 1) {
           return true;
         }
-          
+
         break;
       case "line":
         const a = { x: points[0][0], y: points[0][1] };
