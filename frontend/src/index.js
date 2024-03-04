@@ -1,13 +1,13 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import reportWebVitals from './reportWebVitals';
-import { ToolPovider } from './hooks/tools';
-import { PalleteProvider } from './hooks/usePalette';
-import Router from './Router';
-import { SocketProvider } from './hooks/useSocket';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "./index.css";
+import reportWebVitals from "./reportWebVitals";
+import { ToolPovider } from "./hooks/tools";
+import { PalleteProvider } from "./hooks/usePalette";
+import Router from "./Router";
+import { SocketProvider } from "./hooks/useSocket";
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
+const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <SocketProvider>
     <PalleteProvider>
@@ -15,8 +15,7 @@ root.render(
         <Router />
       </ToolPovider>
     </PalleteProvider>
-  </SocketProvider>
-
+  </SocketProvider>,
 );
 
 // If you want to start measuring performance in your app, pass a function

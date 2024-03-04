@@ -1,156 +1,161 @@
-.topbar-container{
-    position: absolute;
-    display: flex;
-    top: 2%;
-    width: 100vw;
-    justify-content: space-between;
-    align-items: center;
-    z-index: 3;
+.topbar-container {
+  position: absolute;
+  display: flex;
+  top: 2%;
+  width: 100vw;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 3;
 }
-svg{
-    stroke-width: 1.5;
-    width: 24;
-    height: 24;
-}
-
-svg:hover{
-    cursor: pointer;
-}
-.topbar-container .toolbar{
-    position: relative;
-    display: flex;
-    gap:12px;
-    box-shadow: 0 0  3px 2px #eaeaea ;
-    padding: 6px;
-    border-radius: 4px;
-}
-.topbar-container .toolbar button{
-    width: 24px;
-    height: 24px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 4px;
-    border: none;
-    background-color: white;
-    cursor: pointer;
+svg {
+  stroke-width: 1.5;
+  width: 24;
+  height: 24;
 }
 
-.topbar-container .toolbar button:hover{
-    background-color: #e0dfff;
-    
+svg:hover {
+  cursor: pointer;
+}
+.topbar-container .toolbar {
+  position: relative;
+  display: flex;
+  gap: 12px;
+  box-shadow: 0 0 3px 2px #eaeaea;
+  padding: 6px;
+  border-radius: 4px;
+}
+.topbar-container .toolbar button {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 4px;
+  border: none;
+  background-color: white;
+  cursor: pointer;
 }
 
-.topbar-container .toolbar .selected{
-    background-color: #e0dfff;
-}
-.pallete{
-    margin-left: 2%;
-    padding: 6px;
-    border-radius: 4px;
-    box-shadow: 0 0  3px 2px #eaeaea ;
-    /* cursor: pointer; */
-}
-.pallete icon{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    /* z-index: 3; */
-    /* z-index: 9999; */
-}
-.share{
-    margin-right: 2%;
-    padding: 6px 8px;
-    border-radius: 4px;
-    box-shadow: 0 0  3px 2px #eaeaea ;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    cursor: pointer;
-    position: relative;
-}
-.share div{
-    position: absolute;
-    width: 16px;
-    height: 16px;
-    background-color: chartreuse;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    right: 0;
-    bottom: -25%;
-}
-.count{
-    font-size: 10px;
-    font-weight: 500;
-}
-.share button{
-   padding: 8px ;
-    border: none;
-    background-color: white;
-    cursor: pointer;
-}
-.share button:hover{
-    background-color: #e0dfff;
+.topbar-container .toolbar button:hover {
+  background-color: #e0dfff;
 }
 
-.bottom-container{
-    position: absolute;
-    bottom: 2%;
-    z-index: 3;
-    border-radius: 4px;
-    left: 2%;
-    box-shadow: 0 0  3px 2px #eaeaea ;
+.topbar-container .toolbar .selected {
+  background-color: #e0dfff;
+}
+.pallete {
+  margin-left: 2%;
+  padding: 6px;
+  border-radius: 4px;
+  box-shadow: 0 0 3px 2px #eaeaea;
+  /* cursor: pointer; */
+}
+.pallete icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* z-index: 3; */
+  /* z-index: 9999; */
+}
+.share {
+  margin-right: 2%;
+  padding: 6px 8px;
+  border-radius: 4px;
+  box-shadow: 0 0 3px 2px #eaeaea;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  position: relative;
+}
+.share div {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background-color: chartreuse;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  right: 0;
+  bottom: -25%;
+}
+.count {
+  font-size: 10px;
+  font-weight: 500;
+}
+.share button {
+  padding: 8px;
+  border: none;
+  background-color: white;
+  cursor: pointer;
+}
+.share button:hover {
+  background-color: #e0dfff;
 }
 
-.bottom-container .bottom{
-    position: relative;
-    cursor: pointer;
-    display: flex;
-    gap: 20px;
-    padding:6px 8px;
+.bottom-container {
+  position: absolute;
+  bottom: 2%;
+  z-index: 3;
+  border-radius: 4px;
+  padding: 0 2%;
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
 }
 
-.bottom-container .bottom icon{
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.bottom-container .bottom {
+  position: relative;
+  cursor: pointer;
+  display: flex;
+  gap: 20px;
+  padding: 6px 8px;
+  box-shadow: 0 0 3px 2px #eaeaea;
 }
 
-.bottom-container .bottom icon:hover{
-    background-color: aqua;
-    cursor: pointer;
+.bottom-container .bottom icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.bottom-container .bottom .pallete-mobile{
+.message-icon {
+  padding: 6px;
+  border-radius: 4px;
+  box-shadow: 0 0 3px 2px #eaeaea;
+}
+.bottom-container .bottom icon:hover {
+  background-color: aqua;
+  cursor: pointer;
+}
+.bottom-container .bottom .pallete-mobile {
+  display: none;
+}
+.pallete-clicked {
+  background-color: #ececf4;
+}
+
+@media screen and (max-width: 600px) {
+  .pallete {
     display: none;
-}
-.pallete-clicked{
-    background-color: #ececf4;
-}
+  }
+  .share {
+    display: none;
+  }
+  .topbar-container {
+    justify-content: center;
+  }
+  .bottom-container {
+    width: 100%;
+  }
 
-@media screen and (max-width:600px) {
-    .pallete{
-        display: none;
-    }
-    .share{
-        display:none;
-    }
-    .topbar-container{
-        justify-content: center;
-    }
-    .bottom-container{
-        width: 100%;
-    }
-
-    .bottom-container .bottom {
-       
-        justify-content: space-around;
-    }
-    .bottom-container .bottom .pallete-mobile{
-        display: block;
-    }
+  .bottom-container .bottom {
+    justify-content: space-around;
+  }
+  .bottom-container .bottom .pallete-mobile {
+    display: block;
+  }
 }
