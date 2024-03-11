@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import Share from "./components/Share";
+import Share from "./components/share/Share";
 import Drawing from "./components/Drawing/Drawing";
 import App from "./App";
 

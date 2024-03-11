@@ -5,56 +5,84 @@ import shortid from "shortid";
 import useSocket from "../../hooks/useSocket";
 
 const ShareModal = ({ setModal }) => {
-  const [uuid, setUuid] = useState("");
+  const [user, setUser] = useState("");
+  const [name, setName] = useState('')
+  const [showLink, setShowLink] = useState(false)
+  const [disabled,setDisabled] = useState(true)
   const { socket } = useSocket();
 
-  useEffect(() => {
-    if (!localStorage.getItem("roomUuid")) {
-      const id = getId();
-      setUuid(id);
-      localStorage.setItem("roomUuid", JSON.stringify(id));
-    } else {
-      setUuid();
-      const id = JSON.parse(localStorage.getItem("roomUuid"));
-      setUuid(id);
-    }
-  }, []);
+  
 
   useEffect(() => {
-    if (socket && uuid !== "") {
-      const id = uuid.split("/").slice(-1)[0];
-      console.log(id);
-      socket.emit("join", id);
+    if (socket && user.id!==undefined ) {
+      console.log(user.id)
+      const id = user.id.split("/").slice(-1)[0];
+      const initialData = localStorage.getItem("whiteboard") ? JSON.parse(localStorage.getItem('whiteboard'))   : []
+      socket.emit("join", id, name);
       socket.emit(
         "initialData",
         id,
-        JSON.parse(localStorage.getItem("whiteboard")),
+        initialData,
       );
     }
-  }, [uuid]);
+  }, [user.name, user.id, socket]);
 
   const getId = () => {
     return window.location.href + "share/" + shortid.generate();
   };
 
   const copy = () => {
-    navigator.clipboard.writeText(uuid);
+    navigator.clipboard.writeText(user.id);
   };
+
+  const changeHandler = (e) =>{
+    if(e.target.value===''){
+      setName('')
+      setDisabled(true)
+    }else{
+      setName(e.target.value)
+      setDisabled(false)
+    }
+  }
+
+  const getLink = () =>{
+    setShowLink(true)
+    if (!localStorage.getItem("roomUuid")) {
+      const id = getId();
+      const _user = {name,id}
+      setUser(_user)
+      localStorage.setItem("roomUuid", JSON.stringify(_user));
+    } else {
+      const _user = JSON.parse(localStorage.getItem("roomUuid"));
+      setUser(_user);
+    }
+  }
   return (
     <div className="share-modal-container">
       <div className="share-modal">
         <div className="header">
-          <div>Copy Link</div>
+          <div>Share Whiteboard</div>
           <button className="button" onClick={() => setModal(false)}>
             <X />
           </button>
         </div>
         <div className="content">
-          <div>{uuid}</div>
-          <button className="button" onClick={copy}>
-            <Copy />
-          </button>
-        </div>
+          <div className="name">
+            <input className="input" value={name} onChange={changeHandler} placeholder="Enter Name"/>
+            <button disabled={disabled} onClick={getLink} className="link-button">
+              {showLink?'Change Name':'Get Link'}
+              </button>
+          </div>
+          {showLink && 
+                    <div className="link">
+                    <div>{user.id}</div>
+                    <button className="button" onClick={copy}>
+                      <Copy />
+                    </button>
+                  </div>}
+
+          </div>
+
       </div>
     </div>
   );

@@ -8,8 +8,9 @@ const useCursor = () => {
     if (!socket) return;
     if (!localStorage.getItem("roomUuid")) return;
 
-    let roomId = localStorage
-      .getItem("roomUuid")
+    let roomId = JSON.parse(localStorage
+      .getItem("roomUuid"))
+      .id
       .split("/")
       .pop()
       .replace('"', "");

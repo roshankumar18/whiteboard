@@ -36,10 +36,10 @@ const toolItems = [
     type: "line",
     icon: () => <Minus size={16} />,
   },
-  {
-    type: "text",
-    icon: () => <Type size={16} />,
-  },
+  // {
+  //   type: "text",
+  //   icon: () => <Type size={16} />,
+  // },
   {
     type: "ellipse",
     icon: () => <Circle size={16} />,

@@ -22,20 +22,27 @@ function Drawing({ setToggle }) {
   const tempRef = useRef();
   const inputRef = useRef(null);
   const textStartCoordinates = useRef({ x: 0, y: 0 });
+
   const [inputValue, setInputValue] = useState();
   const [coordinates, setCoordinates] = useState({ x: 0, y: 0 });
   const [mouseDown, setMouseDown] = useState(false);
   const [canvasCtx, setCanvasCtx] = useState(null);
   const [roughCanvas, setRoughCanvas] = useState(null);
   const [selectedElement, setSelectedElement] = useState(null);
-  const [undoState, setUndoState] = useState([]);
+  const [undoState, setUndoState] = useState(localStorage.getItem('whiteboard')? JSON.parse(localStorage.getItem('whiteboard')) :[]);
   const [redoState, setRedoState] = useState([]);
   const [tempCanvasCtx, setTempCanvasCtx] = useState(null);
   const [isInput, setIsInput] = useState(false);
+
   const { tools, reset } = useTool();
   const { pencil, square, line, text, ellipse } = tools;
-  const { pallete } = usePallete();
+  const { pallete, changePallete } = usePallete();
+  const { color,   strokeWidth,
+    roughness,
+    fontSize,} = pallete
   const { socket } = useSocket();
+
+  let seedValue = Math.floor(Math.random() * Math.pow(2, 31)) + 1
 
   useEffect(() => {
     let timeout;
@@ -92,7 +99,8 @@ function Drawing({ setToggle }) {
 
   useEffect(() => {
     if (!tempCanvasCtx || !tempRef) return;
-    drawFromLocalStrorage(tempCanvasCtx, roughCanvas, canvasCtx, tempRef);
+    const storage = JSON.parse(localStorage.getItem('whiteboard'))
+    drawFromLocalStrorage(tempCanvasCtx, roughCanvas, canvasCtx, tempRef,storage);
   }, [tempCanvasCtx, tempRef]);
 
   useEffect(() => {
@@ -105,7 +113,8 @@ function Drawing({ setToggle }) {
       tempCanvas.width = window.innerWidth * scaleFactor;
       tempCanvas.height = window.innerHeight * scaleFactor;
       if (!tempCanvas || !canvasCtx) return;
-      drawFromLocalStrorage(tempCanvasCtx, roughCanvas, canvasCtx, tempRef);
+      const storage = JSON.parse(localStorage.getItem('whiteboard'))
+      drawFromLocalStrorage(tempCanvasCtx, roughCanvas, canvasCtx, tempRef, storage);
     };
 
     window.addEventListener("resize", handleResize);
@@ -118,8 +127,10 @@ function Drawing({ setToggle }) {
     if (!socket || !tempCanvasCtx) return;
 
     if (localStorage.getItem("roomUuid")) {
-      let roomId = localStorage
+      let roomId = JSON.parse(localStorage
         .getItem("roomUuid")
+      )
+        .id
         .split("/")
         .pop()
         .replace('"', "");
@@ -212,12 +223,12 @@ function Drawing({ setToggle }) {
       );
       existingDataArray[index] = element;
       localStorage.setItem("whiteboard", JSON.stringify(existingDataArray));
-      drawFromLocalStrorage(tempCanvasCtx, roughCanvas, canvasCtx, tempRef);
+      drawFromLocalStrorage(tempCanvasCtx, roughCanvas, canvasCtx, tempRef,existingDataArray);
     };
 
     const initialDataHandler = (data) => {
       localStorage.setItem("whiteboard", JSON.stringify(data.data));
-      drawFromLocalStrorage(tempCanvasCtx, roughCanvas, canvasCtx, tempRef);
+      drawFromLocalStrorage(tempCanvasCtx, roughCanvas, canvasCtx, tempRef, data.data);
     };
 
     socket.on("drawClient", drawClientHandler);
@@ -237,9 +248,33 @@ function Drawing({ setToggle }) {
     };
   }, [socket, tempCanvasCtx]);
 
+
+  // useEffect(()=>{
+  //   if(!selectedElement) return
+  //   console.log('1')
+  //   const element = selectedElement
+  //   const {type,points} = element
+  //   element.pallete = {...selectedElement.pallete,...pallete}
+  //   element.pallete.stroke = element.pallete.color.hex
+  //   console.log(element)
+  //   draw(
+  //     { [type]: true },
+  //     points[0][0] ,
+  //     points[0][1] ,
+  //     points[1][0] ,
+  //     points[1][1] ,
+  //     tempCanvasCtx,
+  //     roughCanvas,
+  //     tempRef.current.width,
+  //     tempRef.current.height,
+  //     selectedElement.pallete,
+  //   )
+  //   setSelectedElement(element)
+  // },[pallete,selectedElement])
+
   useEffect(() => {
-    // if (!mouseDown) return;
     if (!tempCanvasCtx) return;
+    // if(tools['text']) return;
     tempCanvasCtx.beginPath();
 
     let data;
@@ -258,7 +293,16 @@ function Drawing({ setToggle }) {
       existingDataArray.push(data);
       // localStorage.setItem('whiteboard',JSON.stringify(existingDataArray))
     }
-
+    const option = {
+      stroke: pallete.color.hex,
+      strokeWidth: pallete.strokeWidth,
+      roughness: pallete.roughness,
+      seed:seedValue
+    };
+    
+    const _selectedElement = selectedElement
+    console.log(_selectedElement)
+    
     const mouseMove = (e) => {
       if (tools.select) {
         if (getElementIndex(e.clientX, e.clientY) !== -1) {
@@ -271,9 +315,11 @@ function Drawing({ setToggle }) {
       const canvasHeight = tempRef.current.height;
       const canvasWidth = tempRef.current.width;
 
-      if (tools.select && selectedElement) {
-        const element = selectedElement;
+      if (tools.select && _selectedElement) {
+        const element = _selectedElement;
+        console.log(element)
         const { type, points, pallete } = element;
+        console.log(pallete)
         pallete.stroke = pallete.color.hex;
         const offSetX = e.clientX - coordinates.x;
         const offSetY = e.clientY - coordinates.y;
@@ -320,6 +366,19 @@ function Drawing({ setToggle }) {
           }
           return;
         }
+
+        // draw(
+        //   { [type]: true },
+        //   points[0][0] + offSetX,
+        //   points[0][1] + offSetY,
+        //   points[1][0] + offSetX,
+        //   points[1][1] + offSetY,
+        //   tempCanvasCtx,
+        //   roughCanvas,
+        //   canvasWidth,
+        //   canvasHeight,
+        //   pallete,
+        // );
         draw(
           { [type]: true },
           points[0][0] + offSetX,
@@ -335,11 +394,7 @@ function Drawing({ setToggle }) {
         return;
       }
 
-      const option = {
-        stroke: pallete.color.hex,
-        strokeWidth: pallete.strokeWidth,
-        roughness: pallete.roughness,
-      };
+
       draw(
         tools,
         coordinates.x,
@@ -359,8 +414,10 @@ function Drawing({ setToggle }) {
       }
 
       if (localStorage.getItem("roomUuid")) {
-        let roomId = localStorage
+        let roomId = JSON.parse(localStorage
           .getItem("roomUuid")
+        )
+          .id
           .split("/")
           .pop()
           .replace('"', "");
@@ -389,6 +446,7 @@ function Drawing({ setToggle }) {
   const handleMouseDown = useCallback(
     (e) => {
       if (!tempRef.current && !tempCanvasCtx) return;
+      setSelectedElement(null)
       setMouseDown(true);
       setCoordinates({
         x: e.clientX,
@@ -404,8 +462,9 @@ function Drawing({ setToggle }) {
           setSelectedElement(existingDataArray[elementIndex]);
           console.log(elementIndex);
           const element = existingDataArray.splice(elementIndex, 1);
-          const { type, points, pallete } = element[0];
+          const { type, points, pallete, seed } = element[0];
           pallete.stroke = pallete.color.hex;
+          pallete.seed = seed
           localStorage.setItem("whiteboard", JSON.stringify(existingDataArray));
           canvasCtx.clearRect(
             0,
@@ -413,7 +472,7 @@ function Drawing({ setToggle }) {
             tempRef.current.width,
             tempRef.current.height,
           );
-          drawFromLocalStrorage(tempCanvasCtx, roughCanvas, canvasCtx, tempRef);
+          drawFromLocalStrorage(tempCanvasCtx, roughCanvas, canvasCtx, tempRef,existingDataArray);
           
           if(type==='pencil'){
             
@@ -469,8 +528,9 @@ function Drawing({ setToggle }) {
       };
       let roomId;
       if (localStorage.getItem("roomUuid")) {
-        roomId = localStorage
-          .getItem("roomUuid")
+        roomId = JSON.parse(localStorage
+          .getItem("roomUuid"))
+          .id
           .split("/")
           .pop()
           .replace('"', "");
@@ -497,7 +557,6 @@ function Drawing({ setToggle }) {
   );
 
   const saveDrawingOnMainCanvas = () => {
-    // console.log(canvasCtx)
     setMouseDown(false);
     canvasCtx.drawImage(tempRef.current, 0, 0);
     tempCanvasCtx.clearRect(
@@ -506,19 +565,19 @@ function Drawing({ setToggle }) {
       tempRef.current.width,
       tempRef.current.height,
     );
-    const _tempDrawingState = [...undoState, canvasRef.current.toDataURL()];
-    setUndoState(_tempDrawingState);
   };
 
   const saveDrawingInLocalStorage = (x, y, tools, pallete) => {
-    if (tools["select"] && selectedElement === null) return;
+    if (tools["select"] && selectedElement === null || tools['text']) return;
 
     const existingDataString = localStorage.getItem("whiteboard");
     const existingDataArray = existingDataString
       ? JSON.parse(existingDataString)
       : [];
-    let roomId = localStorage
-      .getItem("roomUuid")
+      let roomId = JSON.parse(localStorage
+        .getItem("roomUuid")
+      )
+      .id
       .split("/")
       .pop()
       .replace('"', "");
@@ -531,6 +590,7 @@ function Drawing({ setToggle }) {
         coordinates.x,
         coordinates.y,
         existingDataArray,
+        
       );
       socket.emit("updateElement", roomId, updatedElement);
       return;
@@ -538,10 +598,13 @@ function Drawing({ setToggle }) {
     if(tools['pencil']) {
       let existingDataArray = JSON.parse(localStorage.getItem('whiteboard'))
       let pencilData = existingDataArray[existingDataArray.length-1]
+      setUndoState(undo=>[...undo,pencilData])
       socket.emit('saveDrawing',roomId,pencilData)
       return
     }
-    
+
+    if(coordinates.x===x && coordinates.y===y)
+      return
     const data = {
       id: Date.now().toString(),
       type: Object.keys(tools).find((key) => tools[key]),
@@ -550,12 +613,15 @@ function Drawing({ setToggle }) {
         [x, y],
       ],
       pallete: pallete,
+      seed:seedValue
     };
     if (!data.type) {
       return;
     }
     
     existingDataArray.push(data);
+    setUndoState(undo=>[...undo,data])
+    setRedoState([])
     localStorage.setItem("whiteboard", JSON.stringify(existingDataArray));
 
     socket.emit("saveDrawing", roomId, data);
@@ -590,6 +656,10 @@ function Drawing({ setToggle }) {
   ]);
 
   const inputBlur = (e) => {
+    if(inputRef.current.value==''){
+      setIsInput(false);
+      reset();
+    }
     // e.preventDefault()
     let myFont = new FontFace("virgil", "url(fonts/Virgil.woff2)");
     const textValue = inputRef.current.value;
@@ -606,6 +676,7 @@ function Drawing({ setToggle }) {
       document.fonts.add(font);
       canvasCtx.font = `${pallete.fontSize}px ${myFont.family}`;
       const measureText = canvasCtx.measureText(text);
+      console.log(measureText)
       var lineHeight = 5;
       for (var i = 0; i < text.length; i++) {
         canvasCtx.fillText(
@@ -627,14 +698,16 @@ function Drawing({ setToggle }) {
         ],
         pallete: option,
         text: textValue,
+        measureText:measureText.width
       };
-
       existingDataArray.push(data);
+      console.log(existingDataArray)
       localStorage.setItem("whiteboard", JSON.stringify(existingDataArray));
 
       if (localStorage.getItem("roomUuid")) {
-        let roomId = localStorage
+        let roomId = JSON.parse(localStorage
           .getItem("roomUuid")
+        ).id
           .split("/")
           .pop()
           .replace('"', "");
@@ -664,7 +737,8 @@ function Drawing({ setToggle }) {
       setRedoState([...redoState, undoState[undoState.length - 1]]);
       const state = undoState.slice(0, -1);
       setUndoState(state);
-      redrawCanvas(state);
+      drawFromLocalStrorage(tempCanvasCtx,roughCanvas,canvasCtx,tempRef,state)
+      // redrawCanvas(state);
     }
   };
 
@@ -691,13 +765,13 @@ function Drawing({ setToggle }) {
   const redo = (e) => {
     e.stopPropagation();
     if (redoState.length > 0) {
-      const nextState = [...undoState, redoState[redoState.length - 1]];
+      const nextUndoState = [...undoState, redoState[redoState.length - 1]];
       const nextRedoState = redoState.slice(0, -1);
 
-      setUndoState(nextState);
+      setUndoState(nextUndoState);
       setRedoState(nextRedoState);
-
-      redrawCanvas(nextState);
+      drawFromLocalStrorage(tempCanvasCtx,roughCanvas,canvasCtx,tempRef,nextUndoState)
+      
     }
   };
 

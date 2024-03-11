@@ -26,9 +26,23 @@
 .share-modal-container .share-modal .header {
   display: flex;
   justify-content: space-between;
+  font-weight: 500;
 }
 .share-modal-container .share-modal .content {
   border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap:6px
+}
+
+.share-modal-container .share-modal .content .link{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.share-modal-container .share-modal .content .name{
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -36,7 +50,7 @@
 }
 
 .button {
-  background-color: #eaeaea;
+  /* background-color: #eaeaea; */
   display: flex;
   align-items: center;
   justify-content: center;
