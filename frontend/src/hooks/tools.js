@@ -10,6 +10,7 @@ export const ToolPovider = ({ children }) => {
     text: false,
     ellipse: false,
     select: true,
+    erase: false,
   });
 
   const toggle = (type) => {
@@ -21,6 +22,7 @@ export const ToolPovider = ({ children }) => {
       text: type === "text",
       ellipse: type === "ellipse",
       select: type === "select",
+      erase: type === "erase",
     }));
   };
 
@@ -30,6 +32,9 @@ export const ToolPovider = ({ children }) => {
       pencil: false,
       square: false,
       text: false,
+      ellipse: false,
+      erase: false,
+      select: true,
     });
   };
   return (

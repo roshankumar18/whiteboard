@@ -29,17 +29,18 @@ const userCusrors = {}
 io.on('connection', (socket) => {
     console.log('a user connected',socket.id);
 
-    socket.on('join',(roomId)=>{
+    socket.on('join',(roomId,name)=>{
         console.log('user joined room')
         socket.join(roomId)
         io.to(roomId).emit('join-count',io.sockets.adapter.rooms.get(roomId).size)
         const color =  getRandomColor()
-        userCusrors[socket.id]={...userCusrors[socket.id],color}
+        userCusrors[socket.id]={...userCusrors[socket.id],color,name}
         
     })
 
     socket.on('initialData',(roomId, data)=>{
         console.log('shared data')
+        
         const index = initialData.findIndex((value)=>{
             return roomId == value[roomId]
         })
@@ -51,7 +52,7 @@ io.on('connection', (socket) => {
         }else{
             initialData[index] = {roomId:roomId, data:data}
         }
-        
+        console.log('share',initialData)
     })
 
     socket.on('getInitialData',(roomId)=>{
@@ -59,6 +60,7 @@ io.on('connection', (socket) => {
             
             return value.roomId == roomId
         })
+        console.log('getini' ,data)
         socket.emit('initialData', data )
     })
 
@@ -84,6 +86,10 @@ io.on('connection', (socket) => {
 
     socket.on('updateElement',(roomId,element)=>{
         socket.to(roomId).emit('updateElement',element)
+    })
+
+    socket.on('action',(roomId, data)=>{
+        socket.to(roomId).emit('action',data)
     })
     socket.on('disconnect',()=>{
         console.log('a user disconnected',socket.id);

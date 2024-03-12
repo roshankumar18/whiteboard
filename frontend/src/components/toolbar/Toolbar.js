@@ -4,6 +4,7 @@ import useTool from "../../hooks/tools";
 
 import {
   Circle,
+  Eraser,
   MessageSquare,
   Minus,
   MousePointer,
@@ -36,13 +37,17 @@ const toolItems = [
     type: "line",
     icon: () => <Minus size={16} />,
   },
-  {
-    type: "text",
-    icon: () => <Type size={16} />,
-  },
+  // {
+  //   type: "text",
+  //   icon: () => <Type size={16} />,
+  // },
   {
     type: "ellipse",
     icon: () => <Circle size={16} />,
+  },
+  {
+    type: "erase",
+    icon: () => <Eraser size={16} />,
   },
 ];
 

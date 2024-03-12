@@ -12,7 +12,6 @@ const draw = (
 ) => {
   tempCanvasCtx.lineCap = "round";
   tempCanvasCtx.lineJoin = "round";
-  const generator = roughCanvas.generator;
   if (pencil) {
     tempCanvasCtx.clearRect(0, 0, canvasWidth, canvasHeight);
     tempCanvasCtx.lineWidth = option.strokeWidth;
@@ -26,8 +25,17 @@ const draw = (
     roughCanvas.line(x1, y1, x2, y2, option);
   }
   if (square) {
-    tempCanvasCtx.clearRect(0, 0, canvasWidth, canvasHeight);
-    roughCanvas.rectangle(x1, y1, x2 - x1, y2 - y1, option);
+    //
+    if (!option) {
+      tempCanvasCtx.beginPath();
+      tempCanvasCtx.strokeStyle = "green";
+      tempCanvasCtx.lineWidth = 3;
+      tempCanvasCtx.rect(x1 - 5, y1 - 5, x2 - x1 + 10, y2 - y1 + 10);
+      tempCanvasCtx.stroke();
+    } else {
+      tempCanvasCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+      roughCanvas.rectangle(x1, y1, x2 - x1, y2 - y1, option);
+    }
   }
   if (ellipse) {
     tempCanvasCtx.clearRect(0, 0, canvasWidth, canvasHeight);

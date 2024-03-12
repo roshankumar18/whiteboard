@@ -4,11 +4,15 @@ import "./style.css";
 import useSocket from "../../hooks/useSocket";
 import { MessageSquare, X } from "lucide-react";
 const Chat = ({ setToggle }) => {
-  const [chats, setChats] = useState([]);
+  const [chats, setChats] = useState(() => {
+    const storedChats = sessionStorage.getItem("chats");
+    return storedChats ? JSON.parse(storedChats) : [];
+  });
   const [inputValue, setInputValue] = useState();
   const messageEnd = useRef();
   const inputRef = useRef();
   const { socket } = useSocket();
+
   useEffect(() => {
     if (!socket) return;
 
@@ -27,6 +31,14 @@ const Chat = ({ setToggle }) => {
   }, [chats, messageEnd]);
 
   useEffect(() => {
+    // const store = sessionStorage.getItem("chats");
+    // const storeChats =  store ? JSON.parse(store) : [];
+    // console.log(chats)
+    // storeChats.push(chats)
+    sessionStorage.setItem("chats", JSON.stringify(chats));
+  }, [chats]);
+
+  useEffect(() => {
     if (!inputRef) return;
     inputRef.current.focus();
   }, [inputRef.current]);
@@ -38,16 +50,16 @@ const Chat = ({ setToggle }) => {
   const onKeyDown = (e) => {
     if (e.key === "Enter") {
       if (inputValue === "") return;
+      const name = JSON.parse(localStorage.getItem("roomUuid"))?.name || "";
       const message = {
         id: socket.id,
         chat: inputValue,
       };
       setChats((prev) => [...prev, message]);
       setInputValue("");
-
-      const roomId = localStorage
-        .getItem("roomUuid")
-        .split("/")
+      message.name = name;
+      const roomId = JSON.parse(localStorage.getItem("roomUuid"))
+        .id.split("/")
         .pop()
         .replace('"', "");
 
@@ -55,15 +67,25 @@ const Chat = ({ setToggle }) => {
     }
   };
 
-  function chat({ id, chat }) {
+  function chat({ id, chat, name }) {
     let style = "";
+    let nameStyle = "";
     if (id === socket.id) {
       style = { alignSelf: "flex-end" };
+      nameStyle = { "justify-content": "flex-end" };
+      name = "You";
     } else {
       style = { alignSelf: "flex-start" };
+      nameStyle = { "justify-content": "flex-start" };
     }
+    console.log(id, chat);
     return (
       <div style={style} className="chat">
+        {name && (
+          <div style={nameStyle} className="name">
+            {name}
+          </div>
+        )}
         {chat}
       </div>
     );

@@ -56,6 +56,17 @@ const getElementIndex = (x, y) => {
         });
         return betweenAnyPoint;
 
+      case "text":
+        const x1 = points[0][0];
+        const x2 = points[0][0] + element.measureText;
+        const y1 = points[0][1];
+        if (x1 >= x && x <= x2) {
+          return true;
+        } else {
+          return false;
+        }
+        break;
+
       default:
         return false;
     }
