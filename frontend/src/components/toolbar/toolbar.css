@@ -115,7 +115,7 @@ svg:hover {
   box-shadow: 0 0 3px 2px #eaeaea;
 }
 
-.bottom-container .bottom icon {
+.bottom-container .bottom .icon {
   width: 24px;
   height: 24px;
   display: flex;
@@ -136,6 +136,11 @@ svg:hover {
 }
 .pallete-clicked {
   background-color: #ececf4;
+}
+
+.icon:hover {
+  border-radius: 4px;
+  background-color: #e0dfff;
 }
 
 @media screen and (max-width: 600px) {

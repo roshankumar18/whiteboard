@@ -1,7 +1,15 @@
-const updateElement = (selectedElement, x, y, x1, y1, existingDataArray,pallete) => {
+const updateElement = (
+  selectedElement,
+  x,
+  y,
+  x1,
+  y1,
+  existingDataArray,
+  pallete,
+) => {
   const offSetX = x - x1;
   const offSetY = y - y1;
-  if(selectedElement.type==='text')return
+  if (selectedElement.type === "text") return;
   if (selectedElement.type === "pencil") {
     selectedElement.points = selectedElement.points.map((point) => [
       point[0] + offSetX,

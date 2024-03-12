@@ -5,11 +5,11 @@ const drawFromLocalStrorage = (
   roughCanvas,
   canvasCtx,
   tempRef,
-  state
+  state,
 ) => {
   canvasCtx.clearRect(0, 0, tempRef.current.width, tempRef.current.height);
-  console.log(state)
-  if(!state || state.length===0) return
+
+  if (!state || state.length === 0) return;
 
   state.forEach((element) => {
     const { type, pallete, points } = element;
@@ -17,7 +17,7 @@ const drawFromLocalStrorage = (
       stroke: pallete.color.hex,
       strokeWidth: pallete.strokeWidth,
       roughness: pallete.roughness,
-      seed:element.seed
+      seed: element.seed,
     };
     tempCanvasCtx.beginPath();
     if (type === "pencil") {
@@ -86,9 +86,13 @@ const drawFromLocalStrorage = (
         option,
       );
     canvasCtx.drawImage(tempRef.current, 0, 0);
-    tempCanvasCtx.clearRect(0, 0, tempRef.current.width, tempRef.current.height);
+    tempCanvasCtx.clearRect(
+      0,
+      0,
+      tempRef.current.width,
+      tempRef.current.height,
+    );
   });
-
 };
 
 export default drawFromLocalStrorage;

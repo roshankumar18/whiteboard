@@ -29,7 +29,7 @@ function Drawing({ setToggle }) {
   const [canvasCtx, setCanvasCtx] = useState(null);
   const [roughCanvas, setRoughCanvas] = useState(null);
   const [selectedElement, setSelectedElement] = useState(null);
-  const [undoState, setUndoState] = useState(localStorage.getItem('whiteboard')? JSON.parse(localStorage.getItem('whiteboard')) :[]);
+  const [undoState, setUndoState] = useState([]);
   const [redoState, setRedoState] = useState([]);
   const [tempCanvasCtx, setTempCanvasCtx] = useState(null);
   const [isInput, setIsInput] = useState(false);
@@ -37,12 +37,10 @@ function Drawing({ setToggle }) {
   const { tools, reset } = useTool();
   const { pencil, square, line, text, ellipse } = tools;
   const { pallete, changePallete } = usePallete();
-  const { color,   strokeWidth,
-    roughness,
-    fontSize,} = pallete
+  const { color, strokeWidth, roughness, fontSize } = pallete;
   const { socket } = useSocket();
 
-  let seedValue = Math.floor(Math.random() * Math.pow(2, 31)) + 1
+  let seedValue = Math.floor(Math.random() * Math.pow(2, 31)) + 1;
 
   useEffect(() => {
     let timeout;
@@ -99,8 +97,14 @@ function Drawing({ setToggle }) {
 
   useEffect(() => {
     if (!tempCanvasCtx || !tempRef) return;
-    const storage = JSON.parse(localStorage.getItem('whiteboard'))
-    drawFromLocalStrorage(tempCanvasCtx, roughCanvas, canvasCtx, tempRef,storage);
+    const storage = JSON.parse(localStorage.getItem("whiteboard"));
+    drawFromLocalStrorage(
+      tempCanvasCtx,
+      roughCanvas,
+      canvasCtx,
+      tempRef,
+      storage,
+    );
   }, [tempCanvasCtx, tempRef]);
 
   useEffect(() => {
@@ -113,8 +117,14 @@ function Drawing({ setToggle }) {
       tempCanvas.width = window.innerWidth * scaleFactor;
       tempCanvas.height = window.innerHeight * scaleFactor;
       if (!tempCanvas || !canvasCtx) return;
-      const storage = JSON.parse(localStorage.getItem('whiteboard'))
-      drawFromLocalStrorage(tempCanvasCtx, roughCanvas, canvasCtx, tempRef, storage);
+      const storage = JSON.parse(localStorage.getItem("whiteboard"));
+      drawFromLocalStrorage(
+        tempCanvasCtx,
+        roughCanvas,
+        canvasCtx,
+        tempRef,
+        storage,
+      );
     };
 
     window.addEventListener("resize", handleResize);
@@ -127,11 +137,8 @@ function Drawing({ setToggle }) {
     if (!socket || !tempCanvasCtx) return;
 
     if (localStorage.getItem("roomUuid")) {
-      let roomId = JSON.parse(localStorage
-        .getItem("roomUuid")
-      )
-        .id
-        .split("/")
+      let roomId = JSON.parse(localStorage.getItem("roomUuid"))
+        .id.split("/")
         .pop()
         .replace('"', "");
       socket.emit("join", roomId);
@@ -223,12 +230,33 @@ function Drawing({ setToggle }) {
       );
       existingDataArray[index] = element;
       localStorage.setItem("whiteboard", JSON.stringify(existingDataArray));
-      drawFromLocalStrorage(tempCanvasCtx, roughCanvas, canvasCtx, tempRef,existingDataArray);
+      drawFromLocalStrorage(
+        tempCanvasCtx,
+        roughCanvas,
+        canvasCtx,
+        tempRef,
+        existingDataArray,
+      );
     };
 
     const initialDataHandler = (data) => {
       localStorage.setItem("whiteboard", JSON.stringify(data.data));
-      drawFromLocalStrorage(tempCanvasCtx, roughCanvas, canvasCtx, tempRef, data.data);
+      drawFromLocalStrorage(
+        tempCanvasCtx,
+        roughCanvas,
+        canvasCtx,
+        tempRef,
+        data.data,
+      );
+    };
+    const handleAction = (data) => {
+      drawFromLocalStrorage(
+        tempCanvasCtx,
+        roughCanvas,
+        canvasCtx,
+        tempRef,
+        data,
+      );
     };
 
     socket.on("drawClient", drawClientHandler);
@@ -237,6 +265,7 @@ function Drawing({ setToggle }) {
     socket.on("drawText", drawTextHandler);
     socket.on("updateElement", updateElementHandler);
     socket.on("initialData", initialDataHandler);
+    socket.on("action", handleAction);
 
     return () => {
       socket.off("drawClient", drawClientHandler);
@@ -245,9 +274,9 @@ function Drawing({ setToggle }) {
       socket.off("drawText", drawTextHandler);
       socket.off("updateElement", updateElementHandler);
       socket.off("initialData", initialDataHandler);
+      socket.off("action", handleAction);
     };
   }, [socket, tempCanvasCtx]);
-
 
   // useEffect(()=>{
   //   if(!selectedElement) return
@@ -297,12 +326,11 @@ function Drawing({ setToggle }) {
       stroke: pallete.color.hex,
       strokeWidth: pallete.strokeWidth,
       roughness: pallete.roughness,
-      seed:seedValue
+      seed: seedValue,
     };
-    
-    const _selectedElement = selectedElement
-    console.log(_selectedElement)
-    
+
+    const _selectedElement = selectedElement;
+
     const mouseMove = (e) => {
       if (tools.select) {
         if (getElementIndex(e.clientX, e.clientY) !== -1) {
@@ -317,20 +345,17 @@ function Drawing({ setToggle }) {
 
       if (tools.select && _selectedElement) {
         const element = _selectedElement;
-        console.log(element)
         const { type, points, pallete } = element;
-        console.log(pallete)
         pallete.stroke = pallete.color.hex;
         const offSetX = e.clientX - coordinates.x;
         const offSetY = e.clientY - coordinates.y;
 
         if (type === "pencil") {
-          
           const newPoints = points.map((point) => [
             point[0] + offSetX,
             point[1] + offSetY,
           ]);
-          
+
           tempCanvasCtx.beginPath();
           if (newPoints.length === 1) {
             const [x1, y1] = newPoints[0];
@@ -394,7 +419,6 @@ function Drawing({ setToggle }) {
         return;
       }
 
-
       draw(
         tools,
         coordinates.x,
@@ -409,16 +433,13 @@ function Drawing({ setToggle }) {
       );
       if (pencil) {
         data.points.push([e.clientX, e.clientY]);
-        existingDataArray.splice(-1,1,data)
-        localStorage.setItem("whiteboard", JSON.stringify(existingDataArray))
+        existingDataArray.splice(-1, 1, data);
+        localStorage.setItem("whiteboard", JSON.stringify(existingDataArray));
       }
 
       if (localStorage.getItem("roomUuid")) {
-        let roomId = JSON.parse(localStorage
-          .getItem("roomUuid")
-        )
-          .id
-          .split("/")
+        let roomId = JSON.parse(localStorage.getItem("roomUuid"))
+          .id.split("/")
           .pop()
           .replace('"', "");
 
@@ -438,7 +459,6 @@ function Drawing({ setToggle }) {
     };
     tempRef.current.addEventListener("mousemove", mouseMove);
     return () => {
-        
       tempRef.current.removeEventListener("mousemove", mouseMove);
     };
   }, [mouseDown, tempRef, tools, selectedElement]);
@@ -446,43 +466,56 @@ function Drawing({ setToggle }) {
   const handleMouseDown = useCallback(
     (e) => {
       if (!tempRef.current && !tempCanvasCtx) return;
-      setSelectedElement(null)
+      setSelectedElement(null);
       setMouseDown(true);
       setCoordinates({
         x: e.clientX,
         y: e.clientY,
       });
-      if (tools.select === true) {
+      if (tools.select === true || tools.erase === true) {
         const elementIndex = getElementIndex(e.clientX, e.clientY);
         const existingDataString = localStorage.getItem("whiteboard");
         let existingDataArray = existingDataString
           ? JSON.parse(existingDataString)
           : [];
         if (elementIndex !== -1) {
-          setSelectedElement(existingDataArray[elementIndex]);
-          console.log(elementIndex);
           const element = existingDataArray.splice(elementIndex, 1);
           const { type, points, pallete, seed } = element[0];
+
+          setUndoState((undo) => {
+            const updatedUndoState = undo.filter(
+              (undoElement) => undoElement.id !== element[0].id,
+            );
+            console.log(...updatedUndoState, element[0]);
+            return [...updatedUndoState, { ...element[0] }];
+          });
+          setRedoState([]);
+
           pallete.stroke = pallete.color.hex;
-          pallete.seed = seed
+          pallete.seed = seed;
           localStorage.setItem("whiteboard", JSON.stringify(existingDataArray));
-          canvasCtx.clearRect(
-            0,
-            0,
-            tempRef.current.width,
-            tempRef.current.height,
+
+          drawFromLocalStrorage(
+            tempCanvasCtx,
+            roughCanvas,
+            canvasCtx,
+            tempRef,
+            existingDataArray,
           );
-          drawFromLocalStrorage(tempCanvasCtx, roughCanvas, canvasCtx, tempRef,existingDataArray);
-          
-          if(type==='pencil'){
-            
+
+          if (tools.erase === true) return;
+
+          setSelectedElement(element[0]);
+
+          //draw selected element on temp canvas
+          if (type === "pencil") {
             tempCanvasCtx.beginPath();
             for (let i = 0; i < points.length - 1; i++) {
-              let x1, y1, x2, y2
-              if(i===0){
+              let x1, y1, x2, y2;
+              if (i === 0) {
                 [x1, y1] = points[0];
                 [x2, y2] = points[0];
-              }else{
+              } else {
                 [x1, y1] = points[i - 1];
                 [x2, y2] = points[i];
               }
@@ -501,7 +534,7 @@ function Drawing({ setToggle }) {
               );
             }
 
-            return
+            return;
           }
           draw(
             { [type]: true },
@@ -528,10 +561,8 @@ function Drawing({ setToggle }) {
       };
       let roomId;
       if (localStorage.getItem("roomUuid")) {
-        roomId = JSON.parse(localStorage
-          .getItem("roomUuid"))
-          .id
-          .split("/")
+        roomId = JSON.parse(localStorage.getItem("roomUuid"))
+          .id.split("/")
           .pop()
           .replace('"', "");
       }
@@ -568,17 +599,19 @@ function Drawing({ setToggle }) {
   };
 
   const saveDrawingInLocalStorage = (x, y, tools, pallete) => {
-    if (tools["select"] && selectedElement === null || tools['text']) return;
+    if (
+      (tools["select"] && selectedElement === null) ||
+      tools["text"] ||
+      tools["erase"]
+    )
+      return;
 
     const existingDataString = localStorage.getItem("whiteboard");
     const existingDataArray = existingDataString
       ? JSON.parse(existingDataString)
       : [];
-      let roomId = JSON.parse(localStorage
-        .getItem("roomUuid")
-      )
-      .id
-      .split("/")
+    let roomId = JSON.parse(localStorage.getItem("roomUuid"))
+      .id.split("/")
       .pop()
       .replace('"', "");
 
@@ -590,21 +623,22 @@ function Drawing({ setToggle }) {
         coordinates.x,
         coordinates.y,
         existingDataArray,
-        
       );
+      setUndoState((undo) => [...undo, updatedElement]);
+      setRedoState([]);
       socket.emit("updateElement", roomId, updatedElement);
       return;
     }
-    if(tools['pencil']) {
-      let existingDataArray = JSON.parse(localStorage.getItem('whiteboard'))
-      let pencilData = existingDataArray[existingDataArray.length-1]
-      setUndoState(undo=>[...undo,pencilData])
-      socket.emit('saveDrawing',roomId,pencilData)
-      return
+    if (tools["pencil"]) {
+      let existingDataArray = JSON.parse(localStorage.getItem("whiteboard"));
+      let pencilData = existingDataArray[existingDataArray.length - 1];
+      setUndoState((undo) => [...undo, pencilData]);
+      setRedoState([]);
+      socket.emit("saveDrawing", roomId, pencilData);
+      return;
     }
 
-    if(coordinates.x===x && coordinates.y===y)
-      return
+    if (coordinates.x === x && coordinates.y === y) return;
     const data = {
       id: Date.now().toString(),
       type: Object.keys(tools).find((key) => tools[key]),
@@ -613,15 +647,15 @@ function Drawing({ setToggle }) {
         [x, y],
       ],
       pallete: pallete,
-      seed:seedValue
+      seed: seedValue,
     };
     if (!data.type) {
       return;
     }
-    
+
     existingDataArray.push(data);
-    setUndoState(undo=>[...undo,data])
-    setRedoState([])
+    setUndoState((undo) => [...undo, data]);
+    setRedoState([]);
     localStorage.setItem("whiteboard", JSON.stringify(existingDataArray));
 
     socket.emit("saveDrawing", roomId, data);
@@ -656,7 +690,7 @@ function Drawing({ setToggle }) {
   ]);
 
   const inputBlur = (e) => {
-    if(inputRef.current.value==''){
+    if (inputRef.current.value == "") {
       setIsInput(false);
       reset();
     }
@@ -676,7 +710,7 @@ function Drawing({ setToggle }) {
       document.fonts.add(font);
       canvasCtx.font = `${pallete.fontSize}px ${myFont.family}`;
       const measureText = canvasCtx.measureText(text);
-      console.log(measureText)
+      console.log(measureText);
       var lineHeight = 5;
       for (var i = 0; i < text.length; i++) {
         canvasCtx.fillText(
@@ -698,17 +732,15 @@ function Drawing({ setToggle }) {
         ],
         pallete: option,
         text: textValue,
-        measureText:measureText.width
+        measureText: measureText.width,
       };
       existingDataArray.push(data);
-      console.log(existingDataArray)
+      console.log(existingDataArray);
       localStorage.setItem("whiteboard", JSON.stringify(existingDataArray));
 
       if (localStorage.getItem("roomUuid")) {
-        let roomId = JSON.parse(localStorage
-          .getItem("roomUuid")
-        ).id
-          .split("/")
+        let roomId = JSON.parse(localStorage.getItem("roomUuid"))
+          .id.split("/")
           .pop()
           .replace('"', "");
 
@@ -735,43 +767,66 @@ function Drawing({ setToggle }) {
     e.stopPropagation();
     if (undoState.length > 0) {
       setRedoState([...redoState, undoState[undoState.length - 1]]);
+      const local = JSON.parse(localStorage.getItem("whiteboard"));
+      const lastElement1 = local[local.length - 1];
+      const lastElement2 = undoState[undoState.length - 1];
+      let draw;
+      if (lastElement1.id === lastElement2.id) {
+        draw = local.slice(0, -1);
+      } else {
+        draw = [...local.slice(0, -1), undoState[undoState.length - 1]];
+      }
       const state = undoState.slice(0, -1);
-      setUndoState(state);
-      drawFromLocalStrorage(tempCanvasCtx,roughCanvas,canvasCtx,tempRef,state)
-      // redrawCanvas(state);
-    }
-  };
 
-  const redrawCanvas = (state) => {
-    tempCanvasCtx.clearRect(
-      0,
-      0,
-      tempRef.current.width,
-      tempRef.current.height,
-    );
-    canvasCtx.clearRect(
-      0,
-      0,
-      canvasRef.current.width,
-      canvasRef.current.height,
-    );
-    const img = new Image();
-    img.src = state[state.length - 1];
-    img.onload = () => {
-      canvasCtx.drawImage(img, 0, 0);
-    };
+      setUndoState(state);
+
+      drawFromLocalStrorage(
+        tempCanvasCtx,
+        roughCanvas,
+        canvasCtx,
+        tempRef,
+        draw,
+      );
+      localStorage.setItem("whiteboard", JSON.stringify(draw));
+
+      let roomId = JSON.parse(localStorage.getItem("roomUuid"))
+        .id.split("/")
+        .pop()
+        .replace('"', "");
+      socket.emit("action", roomId, draw);
+    }
   };
 
   const redo = (e) => {
     e.stopPropagation();
     if (redoState.length > 0) {
-      const nextUndoState = [...undoState, redoState[redoState.length - 1]];
+      const lastElement1 = redoState[redoState.length - 1];
+      const nextUndoState = [...undoState, lastElement1];
       const nextRedoState = redoState.slice(0, -1);
-
+      const local = JSON.parse(localStorage.getItem("whiteboard"));
+      const lastElement2 = local[local.length - 1];
+      let draw;
+      if (lastElement1.id === lastElement2.id) {
+        draw = local.slice(0, -1);
+      } else {
+        draw = [...local, lastElement1];
+      }
       setUndoState(nextUndoState);
       setRedoState(nextRedoState);
-      drawFromLocalStrorage(tempCanvasCtx,roughCanvas,canvasCtx,tempRef,nextUndoState)
-      
+
+      drawFromLocalStrorage(
+        tempCanvasCtx,
+        roughCanvas,
+        canvasCtx,
+        tempRef,
+        draw,
+      );
+      localStorage.setItem("whiteboard", JSON.stringify(draw));
+      let roomId = JSON.parse(localStorage.getItem("roomUuid"))
+        .id.split("/")
+        .pop()
+        .replace('"', "");
+      socket.emit("action", roomId, draw);
     }
   };
 

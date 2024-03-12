@@ -32,17 +32,17 @@
   border-radius: 4px;
   display: flex;
   flex-direction: column;
-  gap:6px
+  gap: 6px;
 }
 
-.share-modal-container .share-modal .content .link{
+.share-modal-container .share-modal .content .link {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 12px;
 }
 
-.share-modal-container .share-modal .content .name{
+.share-modal-container .share-modal .content .name {
   display: flex;
   justify-content: space-between;
   align-items: center;

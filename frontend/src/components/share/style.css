@@ -1,13 +1,13 @@
-.share-container{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    height: 100vh;
+.share-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100vh;
 }
-.share-container .header{
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 6px;
+.share-container .header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
 }

@@ -30,13 +30,13 @@ const Chat = ({ setToggle }) => {
     messageEnd.current.scrollIntoView({ behaviour: "smooth" });
   }, [chats, messageEnd]);
 
-  useEffect(()=>{
+  useEffect(() => {
     // const store = sessionStorage.getItem("chats");
     // const storeChats =  store ? JSON.parse(store) : [];
     // console.log(chats)
     // storeChats.push(chats)
-    sessionStorage.setItem('chats',JSON.stringify(chats))
-  },[chats])
+    sessionStorage.setItem("chats", JSON.stringify(chats));
+  }, [chats]);
 
   useEffect(() => {
     if (!inputRef) return;
@@ -50,18 +50,16 @@ const Chat = ({ setToggle }) => {
   const onKeyDown = (e) => {
     if (e.key === "Enter") {
       if (inputValue === "") return;
-      const name = JSON.parse(localStorage.getItem('roomUuid'))?.name || '';
+      const name = JSON.parse(localStorage.getItem("roomUuid"))?.name || "";
       const message = {
         id: socket.id,
         chat: inputValue,
       };
       setChats((prev) => [...prev, message]);
       setInputValue("");
-      message.name = name
-      const roomId = JSON.parse(localStorage
-        .getItem("roomUuid"))
-        .id
-        .split("/")
+      message.name = name;
+      const roomId = JSON.parse(localStorage.getItem("roomUuid"))
+        .id.split("/")
         .pop()
         .replace('"', "");
 
@@ -71,19 +69,23 @@ const Chat = ({ setToggle }) => {
 
   function chat({ id, chat, name }) {
     let style = "";
-    let nameStyle='';
+    let nameStyle = "";
     if (id === socket.id) {
       style = { alignSelf: "flex-end" };
-      nameStyle = { 'justify-content': "flex-end" };
-      name='You'
+      nameStyle = { "justify-content": "flex-end" };
+      name = "You";
     } else {
       style = { alignSelf: "flex-start" };
-      nameStyle = { 'justify-content': "flex-start" };
+      nameStyle = { "justify-content": "flex-start" };
     }
-    console.log(id,chat)
+    console.log(id, chat);
     return (
       <div style={style} className="chat">
-        {name && <div style={nameStyle} className="name">{name}</div>}
+        {name && (
+          <div style={nameStyle} className="name">
+            {name}
+          </div>
+        )}
         {chat}
       </div>
     );
