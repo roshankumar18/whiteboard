@@ -257,6 +257,7 @@ function Drawing({ setToggle }) {
         tempRef,
         data,
       );
+      localStorage.setItem("whiteboard", JSON.stringify(data));
     };
 
     socket.on("drawClient", drawClientHandler);
@@ -610,13 +611,10 @@ function Drawing({ setToggle }) {
     const existingDataArray = existingDataString
       ? JSON.parse(existingDataString)
       : [];
-    let roomId = JSON.parse(localStorage.getItem("roomUuid"))
-    if(roomId){
-      roomId = roomId.id.split("/")
-      .pop()
-      .replace('"', "");
+    let roomId = JSON.parse(localStorage.getItem("roomUuid"));
+    if (roomId) {
+      roomId = roomId.id.split("/").pop().replace('"', "");
     }
-
 
     if (tools["select"] && selectedElement !== null) {
       const updatedElement = updateElement(
@@ -792,7 +790,7 @@ function Drawing({ setToggle }) {
       );
       localStorage.setItem("whiteboard", JSON.stringify(draw));
 
-      if(!localStorage.getItem('roomUuid')) return
+      if (!localStorage.getItem("roomUuid")) return;
       let roomId = JSON.parse(localStorage.getItem("roomUuid"))
         .id.split("/")
         .pop()
@@ -826,7 +824,7 @@ function Drawing({ setToggle }) {
         draw,
       );
       localStorage.setItem("whiteboard", JSON.stringify(draw));
-      if(!localStorage.getItem('roomUuid')) return
+      if (!localStorage.getItem("roomUuid")) return;
       let roomId = JSON.parse(localStorage.getItem("roomUuid"))
         .id.split("/")
         .pop()
