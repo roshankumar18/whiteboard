@@ -611,9 +611,12 @@ function Drawing({ setToggle }) {
       ? JSON.parse(existingDataString)
       : [];
     let roomId = JSON.parse(localStorage.getItem("roomUuid"))
-      .id.split("/")
+    if(roomId){
+      roomId = roomId.id.split("/")
       .pop()
       .replace('"', "");
+    }
+
 
     if (tools["select"] && selectedElement !== null) {
       const updatedElement = updateElement(
@@ -789,6 +792,7 @@ function Drawing({ setToggle }) {
       );
       localStorage.setItem("whiteboard", JSON.stringify(draw));
 
+      if(!localStorage.getItem('roomUuid')) return
       let roomId = JSON.parse(localStorage.getItem("roomUuid"))
         .id.split("/")
         .pop()
@@ -806,7 +810,7 @@ function Drawing({ setToggle }) {
       const local = JSON.parse(localStorage.getItem("whiteboard"));
       const lastElement2 = local[local.length - 1];
       let draw;
-      if (lastElement1.id === lastElement2.id) {
+      if (!!lastElement2 && lastElement1.id === lastElement2.id) {
         draw = local.slice(0, -1);
       } else {
         draw = [...local, lastElement1];
@@ -822,6 +826,7 @@ function Drawing({ setToggle }) {
         draw,
       );
       localStorage.setItem("whiteboard", JSON.stringify(draw));
+      if(!localStorage.getItem('roomUuid')) return
       let roomId = JSON.parse(localStorage.getItem("roomUuid"))
         .id.split("/")
         .pop()
